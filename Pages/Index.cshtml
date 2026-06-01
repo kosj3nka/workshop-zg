@@ -1,0 +1,269 @@
+@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Home";
+    Layout = "_Layout";
+}
+
+<!-- ============= HERO ============= -->
+<section class="hero">
+    <video class="hero-video" autoplay muted loop playsinline poster="/images/lokacija.jpg">
+        <source src="/videos/hero.mp4" type="video/mp4">
+    </video>
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+        <img src="/images/justLogo.png" alt="Workshop Zagreb" class="hero-logo-img" />
+        <h1 class="hero-tagline">
+            Mornings for coffee.<br>Afternoons for creativity!
+        </h1>
+        <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;">
+            <a href="/workshops" class="btn btn-primary">Browse Workshops</a>
+            <a href="#discover"  class="btn btn-ghost">Learn More</a>
+        </div>
+    </div>
+    <div class="hero-scroll">scroll</div>
+</section>
+
+<!-- ============= CTA ============= -->
+<section class="cta-section" id="discover">
+    <h2>Find Your Workshop</h2>
+    <p>From watercolour to ceramics — a new opportunity each week to make something with your hands, over good coffee.</p>
+    <div class="cta-buttons">
+        <a href="/workshops" class="btn btn-primary">Book a Workshop</a>
+        <a href="/about#find-us" class="btn btn-outline">How to Find Us</a>
+    </div>
+</section>
+
+<!-- ============= PHOTO STRIP ============= -->
+<section class="photo-strip">
+    <div class="photo-strip-inner">
+        <div class="photo-strip-item">
+            <img src="/images/brunch.jpg" alt="Food at Workshop Zagreb" />
+            <div class="photo-strip-caption">Food &amp; Coffee</div>
+        </div>
+        <div class="photo-strip-item photo-strip-item--tall">
+            <img src="/images/unutra.webp" alt="Our space" />
+            <div class="photo-strip-caption">Our Space</div>
+        </div>
+        <div class="photo-strip-item">
+            <img src="/images/macha.jpg" alt="Specialty drinks" />
+            <div class="photo-strip-caption">Specialty Drinks</div>
+        </div>
+    </div>
+</section>
+
+<!-- ============= UPCOMING WORKSHOPS ============= -->
+<section class="workshops-section">
+    <div class="section-header">
+        <h2>Upcoming Workshops</h2>
+        <a href="/workshops">All workshops →</a>
+    </div>
+
+    @if (Model.UpcomingWorkshops.Any())
+    {
+        <div class="workshops-scroll-track">
+            @foreach (var w in Model.UpcomingWorkshops)
+            {
+                bool hasLogo = !string.IsNullOrEmpty(w.LogoUrl)
+                               && w.LogoUrl != "/images/workshops/placeholder-logo.png";
+                <a href="/workshops/@w.Slug" class="workshop-card @(hasLogo ? "has-logo" : "")">
+                    <div class="workshop-card-banner">
+                        @if (!string.IsNullOrEmpty(w.BannerUrl))
+                        {
+                            <img src="@w.BannerUrl" alt="@w.Name" />
+                        }
+                    </div>
+                    @if (hasLogo)
+                    {
+                        <div class="workshop-card-logo-wrap">
+                            <img src="@w.LogoUrl" alt="@w.Name" />
+                        </div>
+                    }
+                    <div class="workshop-card-body">
+                        <p class="workshop-card-date">
+                            @w.Date.ToString("ddd, MMM d", new System.Globalization.CultureInfo("en-US"))
+                        </p>
+                        <h3 class="workshop-card-title">@w.Name</h3>
+                        <p class="workshop-card-time">
+                            @w.StartTime.ToString(@"hh\:mm")
+                            @(w.EndTime.HasValue ? " – " + w.EndTime.Value.ToString(@"hh\:mm") : "")
+                        </p>
+                        <p class="workshop-card-desc">@w.Description</p>
+                    </div>
+                    <div class="workshop-card-footer">
+                        <span class="workshop-price">@(w.Price.HasValue ? $"{w.Price:0} €" : "Free")</span>
+                        <span class="btn btn-outline btn-sm">Reserve</span>
+                    </div>
+                </a>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="workshops-empty"><p>No upcoming workshops at the moment. Follow us on Instagram for updates!</p></div>
+    }
+</section>
+
+<!-- ============= CALENDAR ============= -->
+<section class="calendar-section">
+    <div class="calendar-section-header">
+        <h2>Workshop Calendar</h2>
+        <p>Click a workshop to view details and reserve a spot</p>
+    </div>
+
+    <div class="calendar-wrapper" x-data="{ activeMonth: 0 }">
+
+        <!-- Mobile month switcher -->
+        <div class="calendar-mobile-nav">
+            <button class="cal-nav-btn" @@click="activeMonth = 0" :class="activeMonth===0 ? 'active':''">
+                @Model.CurrentMonthName
+            </button>
+            <button class="cal-nav-btn" @@click="activeMonth = 1" :class="activeMonth===1 ? 'active':''">
+                @Model.NextMonthName
+            </button>
+        </div>
+
+        <div class="calendar-grid-outer">
+
+            <!-- CURRENT MONTH -->
+            <div class="calendar-month" :class="{ 'cal-hidden-mobile': activeMonth !== 0 }">
+                <h3 class="cal-month-title">@Model.CurrentMonthName @Model.CurrentYear</h3>
+                <div class="cal-day-headers">
+                    <span>Mon</span><span>Tue</span><span>Wed</span>
+                    <span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+                </div>
+                <div class="cal-days-grid">
+                    @{
+                        var firstDayOfWeek = ((int)Model.CurrentMonthStart.DayOfWeek + 6) % 7;
+                        for (int blank = 0; blank < firstDayOfWeek; blank++)
+                        {
+                            <div class="cal-day cal-day--empty"></div>
+                        }
+                        for (int d = 1; d <= Model.CurrentMonthDays; d++)
+                        {
+                            var date     = new DateTime(Model.CurrentMonthStart.Year, Model.CurrentMonthStart.Month, d);
+                            var ws       = Model.WorkshopsByDate.TryGetValue(date, out var list) ? list : new();
+                            var reserved    = Model.ReservedDays.TryGetValue(date, out var rd1) ? rd1 : null;
+                            bool isToday    = date == DateTime.Today;
+                            bool isNonWork  = date.DayOfWeek == DayOfWeek.Sunday || Model.Holidays.Contains(date);
+                            <div class="cal-day @(isToday ? "cal-day--today" : "") @(ws.Any() ? "cal-day--has-event" : "") @(reserved != null ? "cal-day--reserved" : "") @(isNonWork ? "cal-day--nonworking" : "")">
+                                <span class="cal-day-num">@d</span>
+                                @{
+                                    var logoW = ws.FirstOrDefault(w => !string.IsNullOrEmpty(w.LogoUrl));
+                                }
+                                @if (logoW != null)
+                                {
+                                    <img src="@logoW.LogoUrl" class="cal-day-logo" alt="" />
+                                }
+                                @if (reserved != null && !string.IsNullOrEmpty(reserved.Label))
+                                {
+                                    <span class="cal-reserved-label">@reserved.Label</span>
+                                }
+                                @foreach (var w in ws)
+                                {
+                                    <a href="/workshops/@w.Slug" class="cal-event">
+                                        <span class="cal-event-name">@w.Name</span>
+                                    </a>
+                                }
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+
+            <!-- NEXT MONTH -->
+            <div class="calendar-month" :class="{ 'cal-hidden-mobile': activeMonth !== 1 }">
+                <h3 class="cal-month-title">@Model.NextMonthName @Model.NextYear</h3>
+                <div class="cal-day-headers">
+                    <span>Mon</span><span>Tue</span><span>Wed</span>
+                    <span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+                </div>
+                <div class="cal-days-grid">
+                    @{
+                        var firstDayNext = ((int)Model.NextMonthStart.DayOfWeek + 6) % 7;
+                        for (int blank = 0; blank < firstDayNext; blank++)
+                        {
+                            <div class="cal-day cal-day--empty"></div>
+                        }
+                        for (int d = 1; d <= Model.NextMonthDays; d++)
+                        {
+                            var date     = new DateTime(Model.NextMonthStart.Year, Model.NextMonthStart.Month, d);
+                            var ws       = Model.WorkshopsByDate.TryGetValue(date, out var list2) ? list2 : new();
+                            var reserved    = Model.ReservedDays.TryGetValue(date, out var rd2) ? rd2 : null;
+                            bool isToday    = date == DateTime.Today;
+                            bool isNonWork2 = date.DayOfWeek == DayOfWeek.Sunday || Model.Holidays.Contains(date);
+                            <div class="cal-day @(isToday ? "cal-day--today" : "") @(ws.Any() ? "cal-day--has-event" : "") @(reserved != null ? "cal-day--reserved" : "") @(isNonWork2 ? "cal-day--nonworking" : "")">
+                                <span class="cal-day-num">@d</span>
+                                @{
+                                    var logoW = ws.FirstOrDefault(w => !string.IsNullOrEmpty(w.LogoUrl));
+                                }
+                                @if (logoW != null)
+                                {
+                                    <img src="@logoW.LogoUrl" class="cal-day-logo" alt="" />
+                                }
+                                @if (reserved != null && !string.IsNullOrEmpty(reserved.Label))
+                                {
+                                    <span class="cal-reserved-label">@reserved.Label</span>
+                                }
+                                @foreach (var w in ws)
+                                {
+                                    <a href="/workshops/@w.Slug" class="cal-event">
+                                        <span class="cal-event-name">@w.Name</span>
+                                    </a>
+                                }
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+
+        </div><!-- /calendar-grid-outer -->
+    </div><!-- /calendar-wrapper -->
+</section>
+
+<!-- ============= MOOD SPLIT ============= -->
+<section class="mood-split">
+    <div class="mood-split-img">
+        <img src="/images/sank.jpg" alt="Workshop Zagreb bar" />
+    </div>
+    <div class="mood-split-text">
+        <span class="mood-eyebrow">Our Space</span>
+        <h2>A hybrid creative space in the heart of Zagreb</h2>
+        <p>Light, simple, and warm — we're tucked beside Ribnjak park, at Henrik Degen 2.</p>
+        <p>Until 3 pm, specialty coffee and snacks. After 3 pm — workshops, conversation, inspiration.</p>
+        <a href="/about" class="btn btn-ghost" style="margin-top:28px;width:fit-content;">Learn More About Us</a>
+    </div>
+</section>
+
+<!-- ============= QUAD PHOTO GRID ============= -->
+<section class="quad-grid-section">
+    <div class="quad-grid">
+        <div class="quad-item">
+            <img src="/images/table.webp" alt="Workshop space" />
+            <div class="quad-overlay"><span>The Space</span></div>
+        </div>
+        <div class="quad-item">
+            <img src="/images/macha.jpg" alt="Specialty drinks" />
+            <div class="quad-overlay"><span>Drinks</span></div>
+        </div>
+        <div class="quad-item">
+            <img src="/images/brunch.jpg" alt="Brunch" />
+            <div class="quad-overlay"><span>Brunch</span></div>
+        </div>
+        <div class="quad-item">
+            <img src="/images/DJ.jpg" alt="Evening event" />
+            <div class="quad-overlay"><span>Events</span></div>
+        </div>
+    </div>
+</section>
+
+<!-- ============= INSTAGRAM CTA ============= -->
+<section class="instagram-cta">
+    <p class="mood-eyebrow">Follow Us</p>
+    <h2>@@workshop.zagreb</h2>
+    <p>Workshops, news, and daily atmosphere — all on Instagram.</p>
+    <a href="https://www.instagram.com/workshop.zagreb/" target="_blank" rel="noopener"
+       class="btn btn-primary" style="margin-top:28px;">
+        Open Instagram ↗
+    </a>
+</section>

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] – Workshop Zagreb</title>
+    <meta name="description" content="@(ViewData["Description"] ?? "Morning coffee, afternoon creativity. Workshops in the heart of Zagreb.")">
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/site.css" />
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body>
+
+    <nav class="navbar" x-data="{ open: false }">
+        <div class="nav-container">
+            <a href="/" class="nav-logo">
+                <img src="/images/justLogo.png" alt="" class="nav-logo-icon" />
+                <img src="/images/logoText.png" alt="Workshop Zagreb" class="nav-logo-img" />
+            </a>
+
+            <ul class="nav-links">
+                <li><a href="/">Home</a></li>
+                <li><a href="/workshops">Workshops</a></li>
+                <li><a href="/menu">Menu</a></li>
+                <li><a href="/about">About</a></li>
+                <li><a href="/suradnja">Collaborate</a></li>
+                <li><a href="/faq">FAQ</a></li>
+                <li><a href="/gallery">Gallery</a></li>
+            </ul>
+
+            <button class="nav-hamburger" @@click="open = !open" aria-label="Menu">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+
+        <div class="nav-mobile" x-show="open" x-transition @@click.outside="open = false">
+            <a href="/"          @@click="open=false">Home</a>
+            <a href="/workshops" @@click="open=false">Workshops</a>
+            <a href="/menu"      @@click="open=false">Menu</a>
+            <a href="/about"     @@click="open=false">About</a>
+            <a href="/suradnja"  @@click="open=false">Collaborate</a>
+            <a href="/faq"       @@click="open=false">FAQ</a>
+            <a href="/gallery"   @@click="open=false">Gallery</a>
+        </div>
+    </nav>
+
+    <main>
+        @RenderBody()
+    </main>
+
+    <footer class="footer">
+        <div class="footer-inner">
+            <div class="footer-brand">
+                <img src="/images/justLogo.png" alt="Workshop Zagreb"
+                     style="height:32px; filter:brightness(0) invert(1); opacity:0.75; margin-bottom:10px;" />
+                <p>Mornings for coffee. Afternoons for creativity.</p>
+                <p style="margin-top:10px; font-size:0.8rem; opacity:0.5;">Henrika Degena 2, Zagreb</p>
+            </div>
+            <div class="footer-links">
+                <a href="/workshops">Workshops</a>
+                <a href="/about">About</a>
+                <a href="/suradnja">Collaborate</a>
+                <a href="/faq">FAQ</a>
+                <a href="/privacy">Privacy</a>
+            </div>
+            <div class="footer-social">
+                <a href="https://www.instagram.com/workshop.zagreb/" target="_blank" rel="noopener">Instagram ↗</a>
+            </div>
+        </div>
+        <p class="footer-copy">© @DateTime.Now.Year Workshop Zagreb</p>
+    </footer>
+
+    <!-- NEWSLETTER POPUP -->
+    <div class="popup-overlay"
+         x-data="newsletterPopup()"
+         x-show="show"
+         x-transition.opacity
+         style="display:none">
+        <div class="popup-card" @@click.stop>
+            <button class="popup-close" @@click="dismiss()">✕</button>
+            <p class="popup-eyebrow">Stay in the loop</p>
+            <h2 class="popup-title">Workshops, news &amp; a little inspiration.</h2>
+            <p class="popup-sub">Once a month. No spam.</p>
+            <form class="popup-form" @@submit.prevent="subscribe($event)">
+                <input type="email" name="email" placeholder="your@email.com" required class="popup-input" />
+                <button type="submit" class="btn btn-primary" x-text="submitted ? 'Check your inbox ✓' : 'Subscribe'"></button>
+            </form>
+            <p class="popup-gdpr">By subscribing you accept our <a href="/privacy">privacy policy</a>.</p>
+        </div>
+    </div>
+
+    <script>
+        function newsletterPopup() {
+            return {
+                show: false, submitted: false,
+                init() { if (!localStorage.getItem('newsletter_dismissed')) setTimeout(() => this.show = true, 3000); },
+                dismiss() { this.show = false; localStorage.setItem('newsletter_dismissed', '1'); },
+                async subscribe(e) {
+                    const email = e.target.querySelector('input[type=email]').value;
+                    await fetch('/api/subscribe', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email }) });
+                    this.submitted = true;
+                    localStorage.setItem('newsletter_dismissed', '1');
+                    setTimeout(() => this.show = false, 2500);
+                }
+            }
+        }
+    </script>
+    <script src="~/js/site.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

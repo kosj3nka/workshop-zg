@@ -1,0 +1,59 @@
+@page
+@model WorkshopZagreb.Pages.Workshops.WorkshopsIndexModel
+@{
+    ViewData["Title"] = "Workshops";
+}
+
+<div class="workshops-page">
+    <div class="workshops-page-header">
+        <h1>Workshops</h1>
+        <p>Every week a different discipline, a different host, a different way of seeing things. Show up curious — we handle the rest.</p>
+    </div>
+
+    @if (Model.Workshops.Any())
+    {
+        <div class="workshops-grid">
+            @foreach (var w in Model.Workshops)
+            {
+                bool hasLogo = !string.IsNullOrEmpty(w.LogoUrl)
+                               && w.LogoUrl != "/images/workshops/placeholder-logo.png";
+                <a href="/workshops/@w.Slug" class="workshop-card @(hasLogo ? "has-logo" : "")">
+                    <div class="workshop-card-banner">
+                        @if (!string.IsNullOrEmpty(w.BannerUrl))
+                        {
+                            <img src="@w.BannerUrl" alt="@w.Name" />
+                        }
+                    </div>
+                    @if (hasLogo)
+                    {
+                        <div class="workshop-card-logo-wrap">
+                            <img src="@w.LogoUrl" alt="@w.Name" />
+                        </div>
+                    }
+                    <div class="workshop-card-body">
+                        <p class="workshop-card-date">
+                            @w.Date.ToString("dddd, MMMM d, yyyy", new System.Globalization.CultureInfo("en-US"))
+                        </p>
+                        <h3 class="workshop-card-title">@w.Name</h3>
+                        <p class="workshop-card-time">
+                            @w.StartTime.ToString(@"hh\:mm")
+                            @(w.EndTime.HasValue ? " – " + w.EndTime.Value.ToString(@"hh\:mm") : "")
+                        </p>
+                        <p class="workshop-card-desc">@w.Description</p>
+                    </div>
+                    <div class="workshop-card-footer">
+                        <span class="workshop-price">@(w.Price.HasValue ? $"{w.Price:0} €" : "Free")</span>
+                        <span class="btn btn-outline btn-sm">Details</span>
+                    </div>
+                </a>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="workshops-empty">
+            <p>No upcoming workshops at the moment.<br>
+               Follow us on <a href="https://instagram.com/workshop.zagreb" style="color:var(--terracotta)">Instagram</a> for updates.</p>
+        </div>
+    }
+</div>

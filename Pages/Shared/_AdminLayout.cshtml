@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] — Admin | Workshop Zagreb</title>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/site.css" />
+</head>
+<body class="admin-body">
+
+    <nav class="admin-navbar">
+        <span class="brand">Workshop Zagreb — Admin</span>
+        <div style="display:flex; gap:24px; align-items:center;">
+            <a href="/admin">Workshops</a>
+            <a href="/admin/reserved">Reserved Days</a>
+            <a href="/" target="_blank">↗ View site</a>
+            <a href="/admin/logout"
+               style="color:rgba(255,255,255,0.5);"
+               onclick="return confirm('Log out?')">Log out</a>
+        </div>
+    </nav>
+
+    <div class="admin-container">
+        @RenderBody()
+    </div>
+
+</body>
+</html>

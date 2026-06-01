@@ -1,0 +1,189 @@
+@page "/admin/workshops/{action}/{id:int?}"
+@model WorkshopZagreb.Pages.Admin.Workshops.WorkshopEditModel
+@{
+    Layout = "_AdminLayout";
+    bool isNew = Model.IsNew;
+    ViewData["Title"] = isNew ? "Nova radionica" : "Uredi radionicu";
+}
+
+<!--
+    This single form handles BOTH adding and editing a workshop.
+    When action="new" there's no id, form creates a new row.
+    When action="edit" and id exists, form loads and updates that row.
+    The owner never has to think about this — it just works.
+-->
+
+<div style="margin-bottom:24px;">
+    <a href="/admin" style="font-size:0.85rem; color:var(--terracotta);">← Natrag na popis</a>
+</div>
+
+<h1 class="admin-page-title">@(isNew ? "Nova radionica" : "Uredi: " + Model.Input.Name)</h1>
+
+@if (!string.IsNullOrEmpty(Model.StatusMessage))
+{
+    <div class="login-error" style="background:#D1FAE5; color:#065F46; margin-bottom:24px;">
+        @Model.StatusMessage
+    </div>
+}
+
+<form method="post" enctype="multipart/form-data" class="form-card">
+    <!-- Hidden id so the POST knows which workshop to update -->
+    <input type="hidden" name="Input.Id" value="@Model.Input.Id" />
+
+    <!-- ===== REQUIRED FIELDS ===== -->
+    <p class="form-section-title">Osnovni podaci</p>
+
+    <div class="form-group">
+        <label class="form-label">Naziv radionice <span class="required">*</span></label>
+        <input type="text" name="Input.Name" value="@Model.Input.Name"
+               class="form-control" required placeholder="npr. Akvarel za početnike" />
+    </div>
+
+    <div class="form-row">
+        <div class="form-group">
+            <label class="form-label">Datum <span class="required">*</span></label>
+            <input type="date" name="Input.Date" value="@Model.Input.Date.ToString("yyyy-MM-dd")"
+                   class="form-control" required />
+        </div>
+        <div class="form-group">
+            <label class="form-label">Početak <span class="required">*</span></label>
+            <input type="time" name="Input.StartTime" value="@Model.Input.StartTime.ToString(@"hh\:mm")"
+                   class="form-control" required />
+        </div>
+    </div>
+
+    <div class="form-row">
+        <div class="form-group">
+            <label class="form-label">Kraj <span style="opacity:0.5;font-weight:400;">(opcionalno)</span></label>
+            <input type="time" name="Input.EndTime"
+                   value="@(Model.Input.EndTime.HasValue ? Model.Input.EndTime.Value.ToString(@"hh\:mm") : "")"
+                   class="form-control" />
+        </div>
+        <div class="form-group">
+            <label class="form-label">Cijena (€)</label>
+            <input type="number" name="Input.Price" value="@Model.Input.Price"
+                   class="form-control" min="0" step="1" placeholder="0 = besplatno" />
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">Opis <span class="required">*</span></label>
+        <textarea name="Input.Description" class="form-control" required
+                  placeholder="Opišite radionicu — što će polaznici naučiti, što je uključeno...">@Model.Input.Description</textarea>
+    </div>
+
+    <div class="form-row">
+        <div class="form-group">
+            <label class="form-label">Max polaznika</label>
+            <input type="number" name="Input.MaxParticipants" value="@Model.Input.MaxParticipants"
+                   class="form-control" min="1" placeholder="npr. 12" />
+        </div>
+        <div class="form-group">
+            <label class="form-label">Entrio URL (ulaznice)</label>
+            <input type="url" name="Input.EntrioUrl" value="@Model.Input.EntrioUrl"
+                   class="form-control" placeholder="https://entrio.hr/event/..." />
+            <p class="form-hint">Link na Entrio stranicu za kupnju ulaznica</p>
+        </div>
+    </div>
+
+    <!-- ===== INSTAGRAM ===== -->
+    <p class="form-section-title">Instagram</p>
+
+    <div class="form-group">
+        <label class="form-label">Link na Instagram objavu <span class="required">*</span></label>
+        <input type="url" name="Input.InstagramPostUrl" value="@Model.Input.InstagramPostUrl"
+               class="form-control" required placeholder="https://www.instagram.com/p/..." />
+        <p class="form-hint">Objava koja promovira ovu radionicu</p>
+    </div>
+
+    <!-- ===== VODITELJ ===== -->
+    <p class="form-section-title">Voditelj radionice <span style="font-weight:400; font-size:0.9rem; opacity:0.6;">(opcionalno)</span></p>
+
+    <div class="form-row">
+        <div class="form-group">
+            <label class="form-label">Ime voditelja</label>
+            <input type="text" name="Input.HostName" value="@Model.Input.HostName"
+                   class="form-control" placeholder="Ana Kovač" />
+        </div>
+        <div class="form-group">
+            <label class="form-label">Instagram voditelja</label>
+            <input type="url" name="Input.HostInstagram" value="@Model.Input.HostInstagram"
+                   class="form-control" placeholder="https://instagram.com/..." />
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">Web stranica voditelja</label>
+        <input type="url" name="Input.HostWebsite" value="@Model.Input.HostWebsite"
+               class="form-control" placeholder="https://..." />
+    </div>
+
+    <!-- ===== IMAGES ===== -->
+    <p class="form-section-title">Images</p>
+
+    <!-- BANNER (required) -->
+    <div class="form-group">
+        <label class="form-label">Banner <span class="required">*</span></label>
+        @if (!string.IsNullOrEmpty(Model.Input.ExistingBannerUrl))
+        {
+            <div style="margin-bottom:12px;">
+                <img src="@Model.Input.ExistingBannerUrl" alt="current banner"
+                     style="width:100%; max-height:180px; object-fit:cover;" />
+                <p class="form-hint">Current banner. Upload a new image to replace it.</p>
+            </div>
+        }
+        <input type="file" name="BannerFile" class="form-control"
+               accept="image/png,image/jpeg,image/webp"
+               @(string.IsNullOrEmpty(Model.Input.ExistingBannerUrl) ? "required" : "") />
+        <p class="form-hint">Main image shown on workshop cards and at the top of the workshop page.</p>
+    </div>
+
+    <!-- LOGO (optional) -->
+    <div class="form-group">
+        <label class="form-label">Logo <span style="font-weight:400; font-size:0.9rem; opacity:0.6;">(optional)</span></label>
+        @if (!string.IsNullOrEmpty(Model.Input.ExistingLogoUrl))
+        {
+            <div style="margin-bottom:12px;">
+                <img src="@Model.Input.ExistingLogoUrl" alt="current logo"
+                     style="width:64px; height:64px; object-fit:cover; background:var(--cream);" />
+                <p class="form-hint">Current logo. Upload a new image to replace it.</p>
+            </div>
+        }
+        <input type="file" name="LogoFile" class="form-control"
+               accept="image/png,image/jpeg,image/webp" />
+        <p class="form-hint">Small square icon shown as a profile picture overlay on the card. Leave blank if not needed.</p>
+    </div>
+
+    <!-- ADDITIONAL PHOTOS (optional) -->
+    <div class="form-group">
+        <label class="form-label">Additional photos <span style="font-weight:400; font-size:0.9rem; opacity:0.6;">(optional)</span></label>
+        @if (Model.ExistingPhotos.Any())
+        {
+            <div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:16px;">
+                @foreach (var photo in Model.ExistingPhotos)
+                {
+                    <div style="position:relative;">
+                        <img src="@photo.Url" alt=""
+                             style="height:80px; width:80px; object-fit:cover;" />
+                        <form method="post" asp-page-handler="DeletePhoto" asp-route-photoId="@photo.Id"
+                              style="position:absolute; top:-6px; right:-6px;"
+                              onsubmit="return confirm('Delete this photo?')">
+                            <button type="submit"
+                                    style="background:#DC2626; color:white; border:none; border-radius:50%; width:20px; height:20px; font-size:11px; cursor:pointer; line-height:1;">✕</button>
+                        </form>
+                    </div>
+                }
+            </div>
+        }
+        <input type="file" name="PhotoFiles" class="form-control"
+               accept="image/png,image/jpeg,image/webp" multiple />
+        <p class="form-hint">Shown in a photo grid on the workshop detail page. Select multiple (Ctrl+click or Shift+click).</p>
+    </div>
+
+    <div class="form-actions">
+        <button type="submit" class="btn btn-primary">
+            @(isNew ? "Objavi radionicu" : "Spremi promjene")
+        </button>
+        <a href="/admin" class="btn btn-outline">Odustani</a>
+    </div>
+</form>

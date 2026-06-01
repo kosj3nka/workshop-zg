@@ -1,0 +1,55 @@
+@page
+@model WorkshopZagreb.Pages.FaqModel
+@{ ViewData["Title"] = "FAQ"; }
+
+<div class="static-page">
+    <div class="static-page-header">
+        <h1>Često postavljana pitanja</h1>
+        <p>Ako ne nađete odgovor, javite nam se na Instagramu.</p>
+    </div>
+
+    <!-- Alpine.js x-data on the container tracks which item is open by index -->
+    <div class="static-content" x-data="{ open: null }">
+
+        @{
+            var faqs = new[]
+            {
+                ("Trebam li predznanje za radionice?",
+                 "Ne! Sve naše radionice su osmišljene za potpune početnike. Voditelji objasne sve od početka, a mi osiguravamo sav materijal."),
+
+                ("Što je uključeno u cijenu radionice?",
+                 "Sav materijal i pribor za rad, kava ili čaj dobrodošlice i dobre vibracije. Ponekad i sitni zalogaj — to saznate u opisu svake radionice."),
+
+                ("Kako kupiti ulaznicu?",
+                 "Ulaznice se kupuju putem Entrio platforme — gumb 'Kupi ulaznicu' na stranici svake radionice odvest će vas tamo. Entrio šalje potvrdu i QR kod na vaš email."),
+
+                ("Mogu li dobiti povrat novca ako ne mogu doći?",
+                 "Povrat je moguć do 48 sati prije radionice. Nakon toga nažalost nije moguće jer smo već naručili materijal. Možete prebaciti ulaznicu na drugu osobu."),
+
+                ("Koliko traje radionica?",
+                 "Obično 2–3 sata, ovisno o vrsti radionice. Točno trajanje piše u opisu svake radionice."),
+
+                ("Ima li parking u blizini?",
+                 "Da, postoji plaćeni parking 100m od nas. Za javni prijevoz: tramvaj broj 6 i 11 staju odmah ispred."),
+
+                ("Mogu li organizirati privatnu radionicu za grupu?",
+                 "Apsolutno! Javite nam se na Instagram i dogovorimo detalje. Radimo privatne radionice za ekipe, birthdayje, team buildinge i slično.")
+            };
+        }
+
+        @for (int i = 0; i < faqs.Length; i++)
+        {
+            var (question, answer) = faqs[i];
+            var idx = i;
+            <div class="faq-item">
+                <button class="faq-question" @@click="open = open === @idx ? null : @idx">
+                    @question
+                    <span class="faq-icon" :style="open === @idx ? 'transform:rotate(45deg)' : ''">+</span>
+                </button>
+                <div class="faq-answer" x-show="open === @idx" x-transition>
+                    @answer
+                </div>
+            </div>
+        }
+    </div>
+</div>

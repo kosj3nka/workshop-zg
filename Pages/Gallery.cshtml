@@ -1,0 +1,35 @@
+@page
+@model WorkshopZagreb.Pages.GalleryModel
+@{ ViewData["Title"] = "Gallery"; }
+
+<div class="static-page">
+    <div class="static-page-header">
+        <h1>Gallery</h1>
+        <p>Moments from our workshops. Every hand, every piece, every smile.</p>
+    </div>
+
+    <div class="gallery-grid">
+
+        @* DB photos (uploaded via admin) show first *@
+        @foreach (var photo in Model.Photos)
+        {
+            <img src="@photo.Url" alt="Workshop Zagreb" loading="lazy" />
+        }
+
+        @* Static wwwroot images *@
+        <img src="/images/unutra.webp"   alt="Interior"              loading="lazy" />
+        <img src="/images/table.webp"    alt="The space"             loading="lazy" />
+        <img src="/images/founders.webp" alt="Marta and Luka"        loading="lazy" />
+        <img src="/images/founders2.webp" alt="At the counter"       loading="lazy" />
+        <img src="/images/dekor.webp"    alt="Coffee bar"            loading="lazy" />
+        <img src="/images/space.webp"    alt="Space detail"          loading="lazy" />
+        <img src="/images/DJ.jpg"        alt="Evening event"         loading="lazy" />
+        <img src="/images/brunch.jpg"    alt="Food and coffee"       loading="lazy" />
+        <img src="/images/macha.jpg"     alt="Specialty drinks"      loading="lazy" />
+        <img src="/images/sank.jpg"      alt="The bar"               loading="lazy" />
+        <img src="/images/lokacija.jpg"  alt="Location"              loading="lazy" />
+        <img src="/images/prostor.jpg"   alt="Our space"             loading="lazy" />
+        <img src="/images/685999787_18068489099482306_4924325272767473715_n.jpg" alt="Snooze Sessions" loading="lazy" />
+
+    </div>
+</div>

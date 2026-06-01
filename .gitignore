@@ -1,0 +1,24 @@
+# Build output
+bin/
+obj/
+publish/
+publish.zip
+
+# SQLite database (local only — Azure gets a fresh one on first run)
+*.db
+*.db-shm
+*.db-wal
+
+# VS / Rider / VS Code
+.vs/
+.vscode/
+.idea/
+*.user
+
+# Secrets (never commit these)
+appsettings.*.local.json
+.env
+
+# OS
+.DS_Store
+Thumbs.db

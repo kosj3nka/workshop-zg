@@ -1,0 +1,163 @@
+@page
+@model WorkshopZagreb.Pages.AboutModel
+@{ ViewData["Title"] = "About"; }
+
+<div class="about-page">
+
+    <!-- HERO BANNER -->
+    <div class="about-hero">
+        <img src="/images/lokacija.jpg" alt="Workshop Zagreb space" class="about-hero-img" />
+        <div class="about-hero-overlay">
+            <h1>About Us</h1>
+            <p>A hybrid creative space beside Ribnjak park</p>
+        </div>
+    </div>
+
+    <!-- INTRO TEXT + SIDE IMAGE -->
+    <section class="about-intro container-narrow">
+        <div class="about-intro-grid">
+            <div class="about-intro-text">
+                <p class="about-eyebrow">Our Story</p>
+                <h2>A spontaneous idea that became something more than an office</h2>
+                <p>
+                    Behind Workshop are <strong>Marta Kolar Senjanović and Luka Cindrić</strong>, architects and friends who met working at the renowned Zagreb studio 3LHD. They collaborated for years on shared projects, and were eventually brought together by the idea of opening a joint workspace.
+                </p>
+                <p>
+                    When they found the perfect space just beside Ribnjak park, they realised they could do something more. They began developing the concept — and today Workshop is a hybrid <em>community space</em> for all kinds of gatherings.
+                </p>
+                <p>
+                    Just as Ribnjak was once a popular meeting place, Workshop is guided by the same idea.
+                </p>
+            </div>
+            <div class="about-intro-img">
+                <img src="/images/founders.webp" alt="Marta and Luka, founders of Workshop Zagreb" />
+                <p class="about-img-caption">Marta &amp; Luka, founders</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- PHOTO TRIO -->
+    <section class="about-photo-trio">
+        <div class="about-trio-grid">
+            <div class="about-trio-item">
+                <img src="/images/dekor.webp" alt="Coffee bar at Workshop Zagreb" />
+            </div>
+            <div class="about-trio-item about-trio-item--tall">
+                <img src="/images/founders2.webp" alt="Marta and Luka at the counter" />
+            </div>
+            <div class="about-trio-item">
+                <img src="/images/unutra.webp" alt="Workshop Zagreb interior" />
+            </div>
+        </div>
+    </section>
+
+    <!-- CONCEPT SECTION -->
+    <section class="about-concept container-narrow">
+        <div class="about-concept-grid">
+            <div class="about-concept-card">
+                <div class="concept-icon">
+                    <!-- coffee cup -->
+                    <svg viewBox="0 0 24 24"><path d="M17 8h1a4 4 0 0 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><line x1="6" y1="2" x2="6" y2="4"/><line x1="10" y1="2" x2="10" y2="4"/><line x1="14" y1="2" x2="14" y2="4"/></svg>
+                </div>
+                <h3>Morning — coffee</h3>
+                <p>
+                    From 8 am to 3 pm, Workshop operates as a specialty coffee place. Espresso, filter coffee, cold brew, matcha, fresh juices — and even craft beer and Espresso Martini.
+                </p>
+                <p>
+                    Coffee knowledge comes from <strong>Vedran at Broom</strong>, one of Croatia's leading specialty baristas. Workshop is one of the few places that isn't strictly a coffee shop but puts an exceptional focus on coffee.
+                </p>
+            </div>
+            <div class="about-concept-card">
+                <div class="concept-icon">
+                    <!-- paintbrush / creativity -->
+                    <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                </div>
+                <h3>Afternoon — creativity</h3>
+                <p>
+                    Every day after 3 pm, the space transforms into a zone for workshops, conversations, and panels. Experts and professionals from many fields — cooking, architecture, painting, floristry, and much more.
+                </p>
+                <p>
+                    The idea was never for Workshop to be an all-day coffee place, but for coffee and creativity to coexist — each in its own time of day.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- FULL WIDTH PHOTO -->
+    <section class="about-full-photo">
+        <img src="/images/table.webp" alt="Workshop Zagreb space" />
+    </section>
+
+    <!-- SPACE + PHOTO GRID -->
+    <section class="about-space container-narrow">
+        <p class="about-eyebrow" style="text-align:center;">Our Space</p>
+        <h2 style="text-align:center; margin-bottom:12px;">Light, simple, and warm</h2>
+        <p style="text-align:center; max-width:560px; margin:0 auto 48px; opacity:0.65; font-size:1rem;">
+            The interior of Workshop is inspired by Ribnjak park itself — open, green, and always welcoming.
+        </p>
+        <div class="about-space-grid">
+            <img src="/images/unutra.webp"  alt="Interior" />
+            <img src="/images/table.webp"   alt="Workshop table" />
+            <img src="/images/dekor.webp"   alt="Coffee bar detail" />
+            <img src="/images/space.webp"   alt="Space detail" />
+        </div>
+    </section>
+
+    <!-- PRESS QUOTE -->
+    <section class="about-press container-narrow">
+        <blockquote class="press-quote">
+            <p>"It was hard to say with certainty whether it was a café, a gallery, a studio, or a coworking space — and that is precisely the charm."</p>
+            <cite>— Journal.hr, April 2026</cite>
+        </blockquote>
+    </section>
+
+    <!-- INFO + MAP -->
+    <section class="about-info container-narrow" id="find-us">
+        <div class="about-info-grid">
+            <div>
+                <p class="about-eyebrow">Visit Us</p>
+                <h2>How to find us</h2>
+                <div class="about-info-details">
+                    <div class="info-row">
+                        <div>
+                            <strong>Henrika Degena 2, Zagreb</strong>
+                            <p>Opposite Ribnjak park</p>
+                        </div>
+                    </div>
+                    <div class="info-row">
+                        <div>
+                            <strong>Café:</strong> Mon – Sat, 08:00 – 15:00<br/>
+                            <strong>Workshops:</strong> daily from 15:00
+                        </div>
+                    </div>
+                    <div class="info-row">
+                        <div>Tram 11 &amp; 12 — Ribnjak stop</div>
+                    </div>
+                    <div class="info-row">
+                        <div>Paid parking 100m away, Jurjevska street</div>
+                    </div>
+                    <div class="info-row">
+                        <div>
+                            <a href="https://www.instagram.com/workshop.zagreb/" target="_blank"
+                               style="color:var(--terracotta)">@@workshop.zagreb</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="about-map-placeholder">
+                <iframe
+                    src="https://maps.google.com/maps?q=Henrika+Degena+2,+Zagreb,+Croatia&z=16&output=embed"
+                    width="100%"
+                    height="100%"
+                    style="border:0; display:block;"
+                    allowfullscreen=""
+                    loading="lazy"
+                    referrerpolicy="no-referrer-when-downgrade"
+                    title="Workshop Zagreb on Google Maps">
+                </iframe>
+            </div>
+        </div>
+    </section>
+
+</div>

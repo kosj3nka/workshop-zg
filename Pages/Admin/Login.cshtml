@@ -1,0 +1,45 @@
+@page
+@model WorkshopZagreb.Pages.Admin.LoginModel
+@{
+    Layout = null; // Login page has its own full-page layout, no navbar needed
+}
+<!DOCTYPE html>
+<html lang="hr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin prijava — Workshop Zagreb</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/site.css" />
+</head>
+<body>
+<div class="admin-login-page">
+    <div class="login-card">
+        <h1>Workshop Zagreb</h1>
+        <p>Admin prijava</p>
+
+        @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+        {
+            <div class="login-error">@Model.ErrorMessage</div>
+        }
+
+        <!--
+            asp-page is a Razor Tag Helper — it generates the correct action URL automatically.
+            method="post" maps to OnPostAsync() in the code-behind.
+        -->
+        <form method="post" class="login-form">
+            <div class="form-group">
+                <label class="form-label">Korisničko ime</label>
+                <input type="text" name="Username" class="form-control" autocomplete="username" required />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Lozinka</label>
+                <input type="password" name="Password" class="form-control" autocomplete="current-password" required />
+            </div>
+            <button type="submit" class="btn btn-primary" style="width:100%; margin-top:8px;">Prijava</button>
+        </form>
+    </div>
+</div>
+</body>
+</html>
