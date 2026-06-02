@@ -72,7 +72,7 @@
         <p class="footer-copy">© @DateTime.Now.Year Workshop Zagreb</p>
     </footer>
 
-    <!-- NEWSLETTER POPUP -->
+    @* NEWSLETTER POPUP — commented out, enable when ready
     <div class="popup-overlay"
          x-data="newsletterPopup()"
          x-show="show"
@@ -107,6 +107,7 @@
             }
         }
     </script>
+    *@
     <script src="~/js/site.js"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>

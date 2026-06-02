@@ -211,18 +211,20 @@ h1, h2, h3 { font-family: var(--font-serif); line-height: 1.2; color: var(--espr
     width: 100%; height: 100%; object-fit: cover; display: block;
 }
 
-/* Logo square — half-overlaps the banner bottom */
+/* Logo — natural ratio, max-bounded, overlaps banner bottom */
 .workshop-card-logo-wrap {
     position: absolute;
-    top: 136px;   /* 160px banner − 24px (half of 48px logo) */
+    top: 136px;
     left: 14px;
-    width: 48px; height: 48px;
-    border-radius: 0;
-    background: transparent;
     z-index: 2;
+    line-height: 0;
 }
 .workshop-card-logo-wrap img {
-    width: 100%; height: 100%; object-fit: cover; display: block;
+    max-width: 48px;
+    max-height: 48px;
+    width: auto;
+    height: auto;
+    display: block;
 }
 
 /* Body — normal padding by default; extra top only when logo is present */
@@ -263,13 +265,15 @@ h1, h2, h3 { font-family: var(--font-serif); line-height: 1.2; color: var(--espr
     position: absolute;
     bottom: -44px;
     left: 32px;
-    width: 88px; height: 88px;
-    border-radius: 0;
-    background: transparent;
     z-index: 2;
+    line-height: 0;
 }
 .workshop-hero-logo-wrap img {
-    width: 100%; height: 100%; object-fit: cover; display: block;
+    max-width: 88px;
+    max-height: 88px;
+    width: auto;
+    height: auto;
+    display: block;
 }
 
 .workshop-detail-grid {
@@ -603,12 +607,14 @@ textarea.form-control { resize: vertical; min-height: 140px; }
     text-align: center; flex-shrink: 0;
 }
 
-/* Workshop logo — absolute top-right of the cell */
+/* Workshop logo — absolute top-right of the cell, slightly larger than the day number */
 .cal-day-logo {
     position: absolute;
-    top: 4px; right: 4px;
-    width: 18px; height: 18px;
-    object-fit: contain;
+    top: 3px; right: 4px;
+    max-width: 24px;
+    max-height: 24px;
+    width: auto;
+    height: auto;
     background: transparent;
     pointer-events: none;
 }
