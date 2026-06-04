@@ -46,13 +46,21 @@ using (var scope = app.Services.CreateScope())
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     db.Database.EnsureCreated();
 
-    // Ensure any tables added after initial creation also exist (safe to run repeatedly)
+    // Ensure any tables/columns added after initial creation also exist (safe to run repeatedly)
     db.Database.ExecuteSqlRaw(@"
         CREATE TABLE IF NOT EXISTS ReservedDays (
             Id    INTEGER PRIMARY KEY AUTOINCREMENT,
             Date  TEXT    NOT NULL,
             Label TEXT
         )");
+
+    // IsArchived column added June 2026 — ALTER TABLE is a no-op if it already exists
+    try
+    {
+        db.Database.ExecuteSqlRaw(
+            "ALTER TABLE Workshops ADD COLUMN IsArchived INTEGER NOT NULL DEFAULT 0");
+    }
+    catch { /* column already present — safe to ignore */ }
 }
 
 app.Run();
