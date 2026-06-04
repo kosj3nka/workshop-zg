@@ -55,6 +55,7 @@ public class AppDbContext : DbContext
                 Price = 35,
                 MaxParticipants = 12,
                 Slug = "akvarel-za-pocetnike",
+                IsArchived = false,
                 CreatedAt = DateTime.UtcNow
             },
             new Workshop
@@ -72,6 +73,7 @@ public class AppDbContext : DbContext
                 Price = 45,
                 MaxParticipants = 8,
                 Slug = "keramika-za-sve",
+                IsArchived = false,
                 CreatedAt = DateTime.UtcNow
             },
             new Workshop
@@ -87,6 +89,7 @@ public class AppDbContext : DbContext
                 Price = 30,
                 MaxParticipants = 10,
                 Slug = "makrame-osnove",
+                IsArchived = false,
                 CreatedAt = DateTime.UtcNow
             }
         );

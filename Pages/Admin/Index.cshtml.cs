@@ -33,6 +33,22 @@ public class AdminIndexModel : PageModel
         return Page();
     }
 
+    // Moves a live workshop to the archive tab
+    public async Task<IActionResult> OnPostArchiveAsync(int id)
+    {
+        var redirect = CheckAuth();
+        if (redirect != null) return redirect;
+
+        var workshop = await _db.Workshops.FindAsync(id);
+        if (workshop != null)
+        {
+            workshop.IsArchived = true;
+            await _db.SaveChangesAsync();
+        }
+
+        return RedirectToPage();
+    }
+
     // Handles the delete button form submission (asp-page-handler="Delete")
     public async Task<IActionResult> OnPostDeleteAsync(int id)
     {

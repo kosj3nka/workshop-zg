@@ -10,88 +10,122 @@
     <a href="/admin/workshops/new" class="btn btn-primary">+ Add workshop</a>
 </div>
 
-@if (!Model.UpcomingWorkshops.Any() && !Model.PastWorkshops.Any())
-{
-    <div class="workshops-empty">
-        <p>No workshops yet. <a href="/admin/workshops/new" style="color:var(--terracotta)">Add the first →</a></p>
-    </div>
-}
-
-@* ── UPCOMING ── *@
-@if (Model.UpcomingWorkshops.Any())
-{
-    <div class="admin-list">
-        @foreach (var w in Model.UpcomingWorkshops)
+<div class="admin-tabs">
+    <button class="admin-tab-btn active" onclick="switchTab('upcoming', this)">
+        Radionice
+        @if (Model.UpcomingWorkshops.Any())
         {
-            <div class="admin-list-item">
-                <div style="display:flex;align-items:center;gap:16px;flex:1;min-width:0;">
-                    @if (!string.IsNullOrEmpty(w.BannerUrl))
-                    {
-                        <img src="@w.BannerUrl" alt=""
-                             style="width:56px;height:40px;object-fit:cover;flex-shrink:0;" />
-                    }
-                    else
-                    {
-                        <div style="width:56px;height:40px;background:var(--cream);flex-shrink:0;border:1px solid var(--border);"></div>
-                    }
-                    <div class="admin-list-item-info">
-                        <h3>@w.Name</h3>
-                        <p>
-                            @w.Date.ToString("dd. MM. yyyy") at @w.StartTime.ToString(@"hh\:mm")
-                            @(w.Price.HasValue ? $" · {w.Price:0} €" : " · Free")
-                        </p>
+            <span class="admin-tab-count">@Model.UpcomingWorkshops.Count</span>
+        }
+    </button>
+    <button class="admin-tab-btn" onclick="switchTab('archive', this)">
+        Arhiva
+        @if (Model.PastWorkshops.Any())
+        {
+            <span class="admin-tab-count">@Model.PastWorkshops.Count</span>
+        }
+    </button>
+</div>
+
+@* ── UPCOMING tab ── *@
+<div id="tab-upcoming" class="admin-tab-panel">
+    @if (!Model.UpcomingWorkshops.Any())
+    {
+        <div class="workshops-empty">
+            <p>Nema nadolazećih radionica. <a href="/admin/workshops/new" style="color:var(--terracotta)">Dodaj prvu →</a></p>
+        </div>
+    }
+    else
+    {
+        <div class="admin-list">
+            @foreach (var w in Model.UpcomingWorkshops)
+            {
+                <div class="admin-list-item">
+                    <div style="display:flex;align-items:center;gap:16px;flex:1;min-width:0;">
+                        @if (!string.IsNullOrEmpty(w.BannerUrl))
+                        {
+                            <img src="@w.BannerUrl" alt=""
+                                 style="width:56px;height:40px;object-fit:cover;flex-shrink:0;" />
+                        }
+                        else
+                        {
+                            <div style="width:56px;height:40px;background:var(--cream);flex-shrink:0;border:1px solid var(--border);"></div>
+                        }
+                        <div class="admin-list-item-info">
+                            <h3>@w.Name</h3>
+                            <p>
+                                @w.Date.ToString("dd. MM. yyyy") u @w.StartTime.ToString(@"hh\:mm")
+                                @(w.Price.HasValue ? $" · {w.Price:0} €" : " · Besplatno")
+                            </p>
+                        </div>
+                    </div>
+                    <div class="admin-list-item-actions">
+                        <a href="/admin/workshops/edit/@w.Id" class="btn btn-outline btn-sm">Edit</a>
+                        <form method="post" asp-page-handler="Archive" asp-route-id="@w.Id"
+                              onsubmit="return confirm('Archive @w.Name? It will move to the Arhiva tab.')">
+                            <button type="submit" class="btn btn-outline btn-sm">Archive</button>
+                        </form>
+                        <form method="post" asp-page-handler="Delete" asp-route-id="@w.Id"
+                              onsubmit="return confirm('Delete @w.Name?')">
+                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                        </form>
                     </div>
                 </div>
-                <div class="admin-list-item-actions">
-                    <a href="/admin/workshops/edit/@w.Id" class="btn btn-outline btn-sm">Edit</a>
-                    <form method="post" asp-page-handler="Delete" asp-route-id="@w.Id"
-                          onsubmit="return confirm('Delete @w.Name?')">
-                        <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-                    </form>
-                </div>
-            </div>
-        }
-    </div>
-}
+            }
+        </div>
+    }
+</div>
 
-@* ── ARCHIVE ── *@
-@if (Model.PastWorkshops.Any())
-{
-    <div class="admin-archive-header">
-        <span>Archive</span>
-        <p>Past workshops — edit to reuse with a new date</p>
-    </div>
-
-    <div class="admin-list">
-        @foreach (var w in Model.PastWorkshops)
-        {
-            <div class="admin-list-item admin-list-item--archived">
-                <div style="display:flex;align-items:center;gap:16px;flex:1;min-width:0;">
-                    @if (!string.IsNullOrEmpty(w.BannerUrl))
-                    {
-                        <img src="@w.BannerUrl" alt=""
-                             style="width:56px;height:40px;object-fit:cover;flex-shrink:0;" />
-                    }
-                    else
-                    {
-                        <div style="width:56px;height:40px;background:var(--cream);flex-shrink:0;border:1px solid var(--border);"></div>
-                    }
-                    <div class="admin-list-item-info">
-                        <h3>@w.Name</h3>
-                        <p>
-                            @w.Date.ToString("dd. MM. yyyy") at @w.StartTime.ToString(@"hh\:mm")
-                            @(w.Price.HasValue ? $" · {w.Price:0} €" : " · Free")
-                        </p>
+@* ── ARCHIVE tab ── *@
+<div id="tab-archive" class="admin-tab-panel" style="display:none">
+    @if (!Model.PastWorkshops.Any())
+    {
+        <div class="workshops-empty">
+            <p>Nema arhiviranih radionica.</p>
+        </div>
+    }
+    else
+    {
+        <div class="admin-list">
+            @foreach (var w in Model.PastWorkshops)
+            {
+                <div class="admin-list-item">
+                    <div style="display:flex;align-items:center;gap:16px;flex:1;min-width:0;">
+                        @if (!string.IsNullOrEmpty(w.BannerUrl))
+                        {
+                            <img src="@w.BannerUrl" alt=""
+                                 style="width:56px;height:40px;object-fit:cover;flex-shrink:0;opacity:0.55;" />
+                        }
+                        else
+                        {
+                            <div style="width:56px;height:40px;background:var(--cream);flex-shrink:0;border:1px solid var(--border);"></div>
+                        }
+                        <div class="admin-list-item-info">
+                            <h3>@w.Name</h3>
+                            <p>
+                                @w.Date.ToString("dd. MM. yyyy") u @w.StartTime.ToString(@"hh\:mm")
+                                @(w.Price.HasValue ? $" · {w.Price:0} €" : " · Besplatno")
+                            </p>
+                        </div>
+                    </div>
+                    <div class="admin-list-item-actions">
+                        <a href="/admin/workshops/edit/@w.Id" class="btn btn-primary btn-sm">Use again</a>
+                        <form method="post" asp-page-handler="Delete" asp-route-id="@w.Id"
+                              onsubmit="return confirm('Delete @w.Name?')">
+                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                        </form>
                     </div>
                 </div>
-                <div class="admin-list-item-actions">
-                    <a href="/admin/workshops/edit/@w.Id" class="btn btn-outline btn-sm">Edit &amp; reuse</a>
-                    <form method="post" asp-page-handler="Delete" asp-route-id="@w.Id"
-                          onsubmit="return confirm('Delete @w.Name?')">
-                        <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-                    </form>
-                </div>
-            </div>
-        }
-    </div>
+            }
+        </div>
+    }
+</div>
+
+<script>
+function switchTab(name, btn) {
+    document.querySelectorAll('.admin-tab-panel').forEach(function(p) { p.style.display = 'none'; });
+    document.querySelectorAll('.admin-tab-btn').forEach(function(b) { b.classList.remove('active'); });
+    document.getElementById('tab-' + name).style.display = '';
+    btn.classList.add('active');
 }
+</script>

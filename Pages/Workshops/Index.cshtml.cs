@@ -16,7 +16,7 @@ public class WorkshopsIndexModel : PageModel
     {
         Workshops = await _db.Workshops
             .Include(w => w.Photos)
-            .Where(w => w.Date >= DateTime.Today)
+            .Where(w => !w.IsArchived && w.Date >= DateTime.Today)
             .OrderBy(w => w.Date)
             .ToListAsync();
     }

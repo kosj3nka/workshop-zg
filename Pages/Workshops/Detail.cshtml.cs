@@ -18,7 +18,7 @@ public class WorkshopDetailModel : PageModel
     {
         Workshop = await _db.Workshops
             .Include(w => w.Photos)
-            .FirstOrDefaultAsync(w => w.Slug == slug);
+            .FirstOrDefaultAsync(w => w.Slug == slug && !w.IsArchived);
 
         if (Workshop == null)
             return NotFound();

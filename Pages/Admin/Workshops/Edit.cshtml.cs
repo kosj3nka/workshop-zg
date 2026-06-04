@@ -37,6 +37,7 @@ public class WorkshopEditModel : PageModel
 
     public List<WorkshopPhoto> ExistingPhotos { get; set; } = new();
     public bool IsNew { get; set; }
+    public bool IsArchivedWorkshop { get; set; }
     public string? StatusMessage { get; set; }
 
     private IActionResult? CheckAuth()
@@ -81,6 +82,7 @@ public class WorkshopEditModel : PageModel
                 ExistingBannerUrl = workshop.BannerUrl,
             };
             ExistingPhotos = workshop.Photos.OrderBy(p => p.Order).ToList();
+            IsArchivedWorkshop = workshop.Date < DateTime.Today;
         }
         else
         {
@@ -128,7 +130,7 @@ public class WorkshopEditModel : PageModel
                 Description = Input.Description,
                 Price = Input.Price,
                 MaxParticipants = Input.MaxParticipants,
-                InstagramPostUrl = Input.InstagramPostUrl,
+                InstagramPostUrl = Input.InstagramPostUrl ?? "",
                 EntrioUrl = Input.EntrioUrl,
                 HostName = Input.HostName,
                 HostInstagram = Input.HostInstagram,
@@ -157,7 +159,7 @@ public class WorkshopEditModel : PageModel
             workshop.Description = Input.Description;
             workshop.Price = Input.Price;
             workshop.MaxParticipants = Input.MaxParticipants;
-            workshop.InstagramPostUrl = Input.InstagramPostUrl;
+            workshop.InstagramPostUrl = Input.InstagramPostUrl ?? "";
             workshop.EntrioUrl = Input.EntrioUrl;
             workshop.HostName = Input.HostName;
             workshop.HostInstagram = Input.HostInstagram;

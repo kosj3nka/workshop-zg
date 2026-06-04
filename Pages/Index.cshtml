@@ -92,7 +92,10 @@
                     </div>
                     <div class="workshop-card-footer">
                         <span class="workshop-price">@(w.Price.HasValue ? $"{w.Price:0} €" : "Free")</span>
-                        <span class="btn btn-outline btn-sm">Reserve</span>
+                        @if (w.Price.HasValue && w.Price > 0)
+                        {
+                            <span class="btn btn-outline btn-sm">Reserve</span>
+                        }
                     </div>
                 </a>
             }
@@ -146,26 +149,37 @@
                             var reserved    = Model.ReservedDays.TryGetValue(date, out var rd1) ? rd1 : null;
                             bool isToday    = date == DateTime.Today;
                             bool isNonWork  = date.DayOfWeek == DayOfWeek.Sunday || Model.Holidays.Contains(date);
-                            <div class="cal-day @(isToday ? "cal-day--today" : "") @(ws.Any() ? "cal-day--has-event" : "") @(reserved != null ? "cal-day--reserved" : "") @(isNonWork ? "cal-day--nonworking" : "")">
-                                <span class="cal-day-num">@d</span>
-                                @{
-                                    var logoW = ws.FirstOrDefault(w => !string.IsNullOrEmpty(w.LogoUrl));
-                                }
-                                @if (logoW != null)
-                                {
-                                    <img src="@logoW.LogoUrl" class="cal-day-logo" alt="" />
-                                }
-                                @if (reserved != null && !string.IsNullOrEmpty(reserved.Label))
-                                {
-                                    <span class="cal-reserved-label">@reserved.Label</span>
-                                }
-                                @foreach (var w in ws)
-                                {
-                                    <a href="/workshops/@w.Slug" class="cal-event">
-                                        <span class="cal-event-name">@w.Name</span>
-                                    </a>
-                                }
-                            </div>
+                            var logoW = ws.FirstOrDefault(w => !string.IsNullOrEmpty(w.LogoUrl));
+                            @if (ws.Any())
+                            {
+                                <a href="/workshops/@ws.First().Slug" class="cal-day @(isToday ? "cal-day--today" : "") cal-day--has-event @(reserved != null ? "cal-day--reserved" : "") @(isNonWork ? "cal-day--nonworking" : "")">
+                                    <span class="cal-day-num">@d</span>
+                                    @if (logoW != null)
+                                    {
+                                        <img src="@logoW.LogoUrl" class="cal-day-logo" alt="" />
+                                    }
+                                    @if (reserved != null && !string.IsNullOrEmpty(reserved.Label))
+                                    {
+                                        <span class="cal-reserved-label">@reserved.Label</span>
+                                    }
+                                    @foreach (var w in ws)
+                                    {
+                                        <span class="cal-event">
+                                            <span class="cal-event-name">@w.Name</span>
+                                        </span>
+                                    }
+                                </a>
+                            }
+                            else
+                            {
+                                <div class="cal-day @(isToday ? "cal-day--today" : "") @(reserved != null ? "cal-day--reserved" : "") @(isNonWork ? "cal-day--nonworking" : "")">
+                                    <span class="cal-day-num">@d</span>
+                                    @if (reserved != null && !string.IsNullOrEmpty(reserved.Label))
+                                    {
+                                        <span class="cal-reserved-label">@reserved.Label</span>
+                                    }
+                                </div>
+                            }
                         }
                     }
                 </div>
@@ -192,26 +206,37 @@
                             var reserved    = Model.ReservedDays.TryGetValue(date, out var rd2) ? rd2 : null;
                             bool isToday    = date == DateTime.Today;
                             bool isNonWork2 = date.DayOfWeek == DayOfWeek.Sunday || Model.Holidays.Contains(date);
-                            <div class="cal-day @(isToday ? "cal-day--today" : "") @(ws.Any() ? "cal-day--has-event" : "") @(reserved != null ? "cal-day--reserved" : "") @(isNonWork2 ? "cal-day--nonworking" : "")">
-                                <span class="cal-day-num">@d</span>
-                                @{
-                                    var logoW = ws.FirstOrDefault(w => !string.IsNullOrEmpty(w.LogoUrl));
-                                }
-                                @if (logoW != null)
-                                {
-                                    <img src="@logoW.LogoUrl" class="cal-day-logo" alt="" />
-                                }
-                                @if (reserved != null && !string.IsNullOrEmpty(reserved.Label))
-                                {
-                                    <span class="cal-reserved-label">@reserved.Label</span>
-                                }
-                                @foreach (var w in ws)
-                                {
-                                    <a href="/workshops/@w.Slug" class="cal-event">
-                                        <span class="cal-event-name">@w.Name</span>
-                                    </a>
-                                }
-                            </div>
+                            var logoW = ws.FirstOrDefault(w => !string.IsNullOrEmpty(w.LogoUrl));
+                            @if (ws.Any())
+                            {
+                                <a href="/workshops/@ws.First().Slug" class="cal-day @(isToday ? "cal-day--today" : "") cal-day--has-event @(reserved != null ? "cal-day--reserved" : "") @(isNonWork2 ? "cal-day--nonworking" : "")">
+                                    <span class="cal-day-num">@d</span>
+                                    @if (logoW != null)
+                                    {
+                                        <img src="@logoW.LogoUrl" class="cal-day-logo" alt="" />
+                                    }
+                                    @if (reserved != null && !string.IsNullOrEmpty(reserved.Label))
+                                    {
+                                        <span class="cal-reserved-label">@reserved.Label</span>
+                                    }
+                                    @foreach (var w in ws)
+                                    {
+                                        <span class="cal-event">
+                                            <span class="cal-event-name">@w.Name</span>
+                                        </span>
+                                    }
+                                </a>
+                            }
+                            else
+                            {
+                                <div class="cal-day @(isToday ? "cal-day--today" : "") @(reserved != null ? "cal-day--reserved" : "") @(isNonWork2 ? "cal-day--nonworking" : "")">
+                                    <span class="cal-day-num">@d</span>
+                                    @if (reserved != null && !string.IsNullOrEmpty(reserved.Label))
+                                    {
+                                        <span class="cal-reserved-label">@reserved.Label</span>
+                                    }
+                                </div>
+                            }
                         }
                     }
                 </div>

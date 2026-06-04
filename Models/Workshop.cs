@@ -30,9 +30,12 @@ public class Workshop
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+    // Manually hidden by admin — stays in archive tab regardless of date
+    public bool IsArchived { get; set; }
+
     // A workshop can have multiple photos
     public List<WorkshopPhoto> Photos { get; set; } = new();
 
-    // Helper: is this workshop in the future?
-    public bool IsUpcoming => Date >= DateTime.Today;
+    // Helper: is this workshop visible as upcoming?
+    public bool IsUpcoming => !IsArchived && Date >= DateTime.Today;
 }

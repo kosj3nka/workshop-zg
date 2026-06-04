@@ -19,6 +19,13 @@
 
 <h1 class="admin-page-title">@(isNew ? "Nova radionica" : "Uredi: " + Model.Input.Name)</h1>
 
+@if (Model.IsArchivedWorkshop)
+{
+    <div class="login-error" style="background:#FEF9EC; color:#92610A; border-left:4px solid #F6C84B; margin-bottom:24px;">
+        Ova radionica je arhivirana. Promijeni datum (i što god trebaš) — pa spremi da bi je objavila ponovo.
+    </div>
+}
+
 @if (!string.IsNullOrEmpty(Model.StatusMessage))
 {
     <div class="login-error" style="background:#D1FAE5; color:#065F46; margin-bottom:24px;">
@@ -90,9 +97,9 @@
     <p class="form-section-title">Instagram</p>
 
     <div class="form-group">
-        <label class="form-label">Link na Instagram objavu <span class="required">*</span></label>
+        <label class="form-label">Link na Instagram objavu <span style="font-weight:400; font-size:0.9rem; opacity:0.6;">(opcionalno)</span></label>
         <input type="url" name="Input.InstagramPostUrl" value="@Model.Input.InstagramPostUrl"
-               class="form-control" required placeholder="https://www.instagram.com/p/..." />
+               class="form-control" placeholder="https://www.instagram.com/p/..." />
         <p class="form-hint">Objava koja promovira ovu radionicu</p>
     </div>
 

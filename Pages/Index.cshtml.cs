@@ -58,7 +58,7 @@ public class IndexModel : PageModel
         // Workshops in the two-month window
         var workshops = (await _db.Workshops
             .Include(w => w.Photos)
-            .Where(w => w.Date >= CurrentMonthStart && w.Date < rangeEnd)
+            .Where(w => !w.IsArchived && w.Date >= CurrentMonthStart && w.Date < rangeEnd)
             .OrderBy(w => w.Date)
             .ToListAsync())
             .OrderBy(w => w.Date).ThenBy(w => w.StartTime)
@@ -77,7 +77,7 @@ public class IndexModel : PageModel
         // Scroll strip — upcoming only, max 8
         UpcomingWorkshops = await _db.Workshops
             .Include(w => w.Photos)
-            .Where(w => w.Date >= today)
+            .Where(w => !w.IsArchived && w.Date >= today)
             .OrderBy(w => w.Date)
             .Take(8)
             .ToListAsync();
