@@ -93,17 +93,20 @@ else
                         @(w.MaxParticipants.HasValue ? $"Max {w.MaxParticipants} participants" : "Open registration")
                     </p>
 
-                    @if (!string.IsNullOrEmpty(w.EntrioUrl))
+                    @if (w.Price.HasValue)
                     {
-                        <a href="@w.EntrioUrl" target="_blank" rel="noopener" class="btn btn-primary">
-                            Buy ticket (Entrio) ↗
-                        </a>
-                    }
-                    else
-                    {
-                        <a href="https://www.instagram.com/workshop.zagreb/" target="_blank" class="btn btn-primary">
-                            Register via Instagram
-                        </a>
+                        if (!string.IsNullOrEmpty(w.EntrioUrl))
+                        {
+                            <a href="@w.EntrioUrl" target="_blank" rel="noopener" class="btn btn-primary">
+                                Buy ticket (Entrio) ↗
+                            </a>
+                        }
+                        else
+                        {
+                            <a href="https://www.instagram.com/workshop.zagreb/" target="_blank" class="btn btn-primary">
+                                Register via Instagram
+                            </a>
+                        }
                     }
 
                     @if (!string.IsNullOrEmpty(w.HostName))
