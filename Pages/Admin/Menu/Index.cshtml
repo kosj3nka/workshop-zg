@@ -1,0 +1,99 @@
+@page "/admin/menu"
+@model WorkshopZagreb.Pages.Admin.Menu.MenuAdminModel
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Meni";
+    bool picaActive = Model.Tab != "hrana";
+}
+
+<div class="admin-top-bar">
+    <h1 class="admin-page-title">Meni</h1>
+</div>
+
+<p class="form-hint" style="margin-bottom:24px;">
+    "Pića" i "Hrana" su fiksne glavne kategorije. Unutar njih možeš dodavati, preimenovati,
+    brisati i prerazporediti svoje pod-kategorije (npr. "Kava", "Sokovi", "Burgeri") i stavke.
+    Promjene se odmah vide na stranici Meni.
+</p>
+
+<div class="admin-tabs">
+    <button class="admin-tab-btn @(picaActive ? "active" : "")" onclick="switchTab('pica', this)">
+        Pića
+        @if (Model.DrinkCategories.Any())
+        {
+            <span class="admin-tab-count">@Model.DrinkCategories.Count</span>
+        }
+    </button>
+    <button class="admin-tab-btn @(picaActive ? "" : "active")" onclick="switchTab('hrana', this)">
+        Hrana
+        @if (Model.FoodCategories.Any())
+        {
+            <span class="admin-tab-count">@Model.FoodCategories.Count</span>
+        }
+    </button>
+</div>
+
+@* ── PIĆA tab ── *@
+<div id="tab-pica" class="admin-tab-panel" style="@(picaActive ? "" : "display:none")">
+
+    @if (!Model.DrinkCategories.Any())
+    {
+        <div class="workshops-empty">
+            <p>Nema kategorija u "Pića" još. Dodaj prvu ispod.</p>
+        </div>
+    }
+    else
+    {
+        @foreach (var cat in Model.DrinkCategories)
+        {
+            @await Html.PartialAsync("_Category", cat, new ViewDataDictionary(ViewData) { ["Tab"] = "pica" })
+        }
+    }
+
+    <form method="post" asp-page-handler="AddCategory" class="form-card" style="margin-top:24px; display:flex; gap:12px; align-items:flex-end;">
+        <input type="hidden" name="main" value="Pica" />
+        <input type="hidden" name="tab" value="pica" />
+        <div class="form-group" style="flex:1; margin-bottom:0;">
+            <label class="form-label">Nova kategorija u "Pića"</label>
+            <input type="text" name="name" class="form-control" placeholder="npr. Sokovi" required />
+        </div>
+        <button type="submit" class="btn btn-primary">+ Dodaj kategoriju</button>
+    </form>
+</div>
+
+@* ── HRANA tab ── *@
+<div id="tab-hrana" class="admin-tab-panel" style="@(picaActive ? "display:none" : "")">
+
+    @if (!Model.FoodCategories.Any())
+    {
+        <div class="workshops-empty">
+            <p>Nema kategorija u "Hrana" još. Dodaj prvu ispod — odmah će se prikazati na javnoj stranici Meni.</p>
+        </div>
+    }
+    else
+    {
+        @foreach (var cat in Model.FoodCategories)
+        {
+            @await Html.PartialAsync("_Category", cat, new ViewDataDictionary(ViewData) { ["Tab"] = "hrana" })
+        }
+    }
+
+    <form method="post" asp-page-handler="AddCategory" class="form-card" style="margin-top:24px; display:flex; gap:12px; align-items:flex-end;">
+        <input type="hidden" name="main" value="Hrana" />
+        <input type="hidden" name="tab" value="hrana" />
+        <div class="form-group" style="flex:1; margin-bottom:0;">
+            <label class="form-label">Nova kategorija u "Hrana"</label>
+            <input type="text" name="name" class="form-control" placeholder="npr. Burgeri" required />
+        </div>
+        <button type="submit" class="btn btn-primary">+ Dodaj kategoriju</button>
+    </form>
+</div>
+
+<script>
+function switchTab(name, btn) {
+    document.querySelectorAll('.admin-tab-panel').forEach(function (p) { p.style.display = 'none'; });
+    document.querySelectorAll('.admin-tab-btn').forEach(function (b) { b.classList.remove('active'); });
+    document.getElementById('tab-' + name).style.display = '';
+    btn.classList.add('active');
+}
+</script>

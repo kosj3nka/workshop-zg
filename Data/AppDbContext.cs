@@ -16,6 +16,8 @@ public class AppDbContext : DbContext
     public DbSet<WorkshopPhoto> WorkshopPhotos => Set<WorkshopPhoto>();
     public DbSet<Subscriber> Subscribers => Set<Subscriber>();
     public DbSet<ReservedDay> ReservedDays => Set<ReservedDay>();
+    public DbSet<MenuCategory> MenuCategories => Set<MenuCategory>();
+    public DbSet<MenuItem> MenuItems => Set<MenuItem>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -34,6 +36,13 @@ public class AppDbContext : DbContext
             .HasMany(w => w.Photos)
             .WithOne(p => p.Workshop)
             .HasForeignKey(p => p.WorkshopId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // One menu category -> many menu items, delete items when category is deleted
+        modelBuilder.Entity<MenuCategory>()
+            .HasMany(c => c.Items)
+            .WithOne(i => i.Category)
+            .HasForeignKey(i => i.MenuCategoryId)
             .OnDelete(DeleteBehavior.Cascade);
 
         // Seed some sample workshops so the site isn't empty on first run

@@ -1,0 +1,32 @@
+@model WorkshopZagreb.Models.MenuCategory
+
+<div class="menu-section">
+    <h2>@Model.Name</h2>
+
+    @foreach (var item in Model.Items.Where(i => !i.IsAddon))
+    {
+        <div class="menu-item">
+            <span class="menu-item-name">
+                @item.Name
+                @if (!string.IsNullOrWhiteSpace(item.Ingredients))
+                {
+                    <br /><span style="font-size:0.75rem; opacity:0.55;">@item.Ingredients</span>
+                }
+            </span>
+            <span class="menu-item-price">@item.Price.ToString("0.00").Replace(".", ",") €</span>
+        </div>
+    }
+
+    @if (Model.Items.Any(i => i.IsAddon))
+    {
+        <div class="menu-addon">
+            @foreach (var item in Model.Items.Where(i => i.IsAddon))
+            {
+                <div class="menu-item">
+                    <span class="menu-item-name">@item.Name</span>
+                    <span class="menu-item-price">+ @item.Price.ToString("0.00").Replace(".", ",") €</span>
+                </div>
+            }
+        </div>
+    }
+</div>

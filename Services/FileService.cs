@@ -12,15 +12,22 @@ public class FileService : IFileService
 {
     private readonly IWebHostEnvironment _env;
 
+    // On Azure, wwwroot is read-only and replaced on every deploy ("Run From
+    // Package"), so uploads must go to /home/data/images (persistent storage)
+    // instead. Locally this is just wwwroot/images as before.
+    private readonly string _imagesRoot;
+
     public FileService(IWebHostEnvironment env)
     {
         _env = env;
+        _imagesRoot = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("WEBSITE_INSTANCE_ID"))
+            ? "/home/data/images"
+            : Path.Combine(_env.WebRootPath, "images");
     }
 
     public async Task<string> SaveImageAsync(IFormFile file, string subfolder)
     {
-        // Build the save path inside /wwwroot/images/{subfolder}/
-        var uploadsFolder = Path.Combine(_env.WebRootPath, "images", subfolder);
+        var uploadsFolder = Path.Combine(_imagesRoot, subfolder);
         Directory.CreateDirectory(uploadsFolder);
 
         // Create a unique filename to prevent collisions
@@ -39,7 +46,11 @@ public class FileService : IFileService
     public void DeleteImage(string relativePath)
     {
         if (string.IsNullOrEmpty(relativePath)) return;
-        var fullPath = Path.Combine(_env.WebRootPath, relativePath.TrimStart('/'));
+        // relativePath looks like "/images/{subfolder}/{file}" — strip the leading "/images/"
+        var trimmed = relativePath.TrimStart('/');
+        if (trimmed.StartsWith("images/")) trimmed = trimmed["images/".Length..];
+
+        var fullPath = Path.Combine(_imagesRoot, trimmed);
         if (File.Exists(fullPath))
             File.Delete(fullPath);
     }

@@ -2,6 +2,18 @@
 @model WorkshopZagreb.Pages.MenuModel
 @{ ViewData["Title"] = "Meni"; }
 
+@{
+    // Split the drink categories roughly in half so they balance into two columns,
+    // the same way the page used to look when the menu was hardcoded.
+    int half = (Model.DrinkCategories.Count + 1) / 2;
+    var drinksLeft  = Model.DrinkCategories.Take(half).ToList();
+    var drinksRight = Model.DrinkCategories.Skip(half).ToList();
+
+    int foodHalf = (Model.FoodCategories.Count + 1) / 2;
+    var foodLeft  = Model.FoodCategories.Take(foodHalf).ToList();
+    var foodRight = Model.FoodCategories.Skip(foodHalf).ToList();
+}
+
 <div class="static-page">
     <div class="static-page-header">
         <h1>Meni</h1>
@@ -14,88 +26,47 @@
 
         <!-- LEFT COLUMN -->
         <div>
-            <div class="menu-section">
-                <h2>Kava / Broom Coffee Roasters</h2>
-                <div class="menu-item"><span class="menu-item-name">Espresso</span><span class="menu-item-price">2,20 €</span></div>
-                <div class="menu-item"><span class="menu-item-name">Double espresso</span><span class="menu-item-price">3,30 €</span></div>
-                <div class="menu-item"><span class="menu-item-name">Coffee with milk</span><span class="menu-item-price">2,60 €</span></div>
-                <div class="menu-item"><span class="menu-item-name">Cortado</span><span class="menu-item-price">2,30 €</span></div>
-                <div class="menu-item"><span class="menu-item-name">Cappuccino</span><span class="menu-item-price">2,70 €</span></div>
-                <div class="menu-item"><span class="menu-item-name">Caffe latte</span><span class="menu-item-price">3,10 €</span></div>
-                <div class="menu-item"><span class="menu-item-name">Americano</span><span class="menu-item-price">3,30 €</span></div>
-                <div class="menu-item"><span class="menu-item-name">Flat White</span><span class="menu-item-price">3,90 €</span></div>
-                <div class="menu-item"><span class="menu-item-name">Iced latte</span><span class="menu-item-price">3,10 €</span></div>
-                <div class="menu-item"><span class="menu-item-name">Espresso tonic</span><span class="menu-item-price">7,50 €</span></div>
-                <div class="menu-item"><span class="menu-item-name">Babyccino</span><span class="menu-item-price">1,20 €</span></div>
-                <div class="menu-addon">
-                    <div class="menu-item"><span class="menu-item-name">Bademovo mlijeko</span><span class="menu-item-price">+ 0,50 €</span></div>
-                    <div class="menu-item"><span class="menu-item-name">Zobeno mlijeko</span><span class="menu-item-price">+ 0,50 €</span></div>
-                    <div class="menu-item"><span class="menu-item-name">Sojino mlijeko</span><span class="menu-item-price">+ 0,50 €</span></div>
-                </div>
-            </div>
-
-            <div class="menu-section">
-                <h2>Filter kava</h2>
-                <div class="menu-item"><span class="menu-item-name">V60 1 cup</span><span class="menu-item-price">5,50 €</span></div>
-                <div class="menu-item"><span class="menu-item-name">V60 2 cups</span><span class="menu-item-price">7,00 €</span></div>
-                <div class="menu-item"><span class="menu-item-name">Batch brew / Maccamster</span><span class="menu-item-price">3,00 €</span></div>
-                <div class="menu-item"><span class="menu-item-name">Cold brew</span><span class="menu-item-price">3,50 €</span></div>
-            </div>
-
-            <div class="menu-section">
-                <h2>Čaj</h2>
-                <div class="menu-item"><span class="menu-item-name">Organic matcha latte</span><span class="menu-item-price">4,80 €</span></div>
-                <div class="menu-item"><span class="menu-item-name">Peppermint Mint organic tea</span><span class="menu-item-price">2,50 €</span></div>
-                <div class="menu-item"><span class="menu-item-name">Chamomile organic tea</span><span class="menu-item-price">2,50 €</span></div>
-                <div class="menu-item"><span class="menu-item-name">Organic Sencha tea</span><span class="menu-item-price">2,50 €</span></div>
-                <div class="menu-item"><span class="menu-item-name">Premium Earl Grey</span><span class="menu-item-price">2,50 €</span></div>
-                <div class="menu-item"><span class="menu-item-name">Willi Vanili tea</span><span class="menu-item-price">2,50 €</span></div>
-                <div class="menu-item"><span class="menu-item-name">Hibiskus tea</span><span class="menu-item-price">2,50 €</span></div>
-            </div>
+            @if (!Model.DrinkCategories.Any())
+            {
+                <p style="opacity:0.6;">Meni se uskoro ažurira.</p>
+            }
+            @foreach (var cat in drinksLeft)
+            {
+                @await Html.PartialAsync("_MenuCategory", cat)
+            }
         </div>
 
         <!-- RIGHT COLUMN -->
         <div>
-            <div class="menu-section">
-                <h2>Sokovi</h2>
-                <div class="menu-item"><span class="menu-item-name">Fresh orange juice</span><span class="menu-item-price">3,50 €</span></div>
-                <div class="menu-item"><span class="menu-item-name">Lemonade</span><span class="menu-item-price">2,70 €</span></div>
-                <div class="menu-item"><span class="menu-item-name">Homemade ice tea</span><span class="menu-item-price">3,60 €</span></div>
-                <div class="menu-item"><span class="menu-item-name">Workshop mix</span><span class="menu-item-price">3,60 €</span></div>
-                <div class="menu-item"><span class="menu-item-name">Guuc juices</span><span class="menu-item-price">3,70 €</span></div>
-            </div>
-
-            <div class="menu-section">
-                <h2>Voda</h2>
-                <div class="menu-item"><span class="menu-item-name">Jana</span><span class="menu-item-price">1,70 €</span></div>
-                <div class="menu-item"><span class="menu-item-name">Jamnica</span><span class="menu-item-price">1,70 €</span></div>
-            </div>
-
-            <div class="menu-section">
-                <h2>Hrvatsko craft pivo</h2>
-                <div class="menu-item"><span class="menu-item-name">Zeppelin ale</span><span class="menu-item-price">3,60 €</span></div>
-                <div class="menu-item"><span class="menu-item-name">Zeppelin lager</span><span class="menu-item-price">3,60 €</span></div>
-            </div>
-
-            <div class="menu-section">
-                <h2>Vino</h2>
-                <div class="menu-item"><span class="menu-item-name">La vie en Rose</span><span class="menu-item-price">4,60 €</span></div>
-                <div class="menu-item"><span class="menu-item-name">Villa chambre d'amour</span><span class="menu-item-price">4,60 €</span></div>
-                <div class="menu-item"><span class="menu-item-name">Chocolatero</span><span class="menu-item-price">4,60 €</span></div>
-                <div class="menu-item"><span class="menu-item-name">Pjenušac</span><span class="menu-item-price">4,60 €</span></div>
-            </div>
-
-            <div class="menu-section">
-                <h2>Pića</h2>
-                <div class="menu-item"><span class="menu-item-name">Mimosa</span><span class="menu-item-price">4,10 €</span></div>
-                <div class="menu-item"><span class="menu-item-name">Hugo</span><span class="menu-item-price">5,50 €</span></div>
-                <div class="menu-item"><span class="menu-item-name">Espresso Martini</span><span class="menu-item-price">7,00 €</span></div>
-                <div class="menu-item"><span class="menu-item-name">Gin tonic</span><span class="menu-item-price">5,70 €</span></div>
-                <div class="menu-item"><span class="menu-item-name">Tequila Clase Azul</span><span class="menu-item-price">25,00 €</span></div>
-            </div>
+            @foreach (var cat in drinksRight)
+            {
+                @await Html.PartialAsync("_MenuCategory", cat)
+            }
         </div>
 
         <p class="menu-legal">Zabranjeno je usluživanje alkoholnih pića osobama mlađim od 18 godina.</p>
 
     </div>
+
+    @if (Model.FoodCategories.Any())
+    {
+        <div class="static-page-header" style="margin-top:48px;">
+            <h2>Hrana</h2>
+        </div>
+
+        <div class="menu-grid">
+            <div>
+                @foreach (var cat in foodLeft)
+                {
+                    @await Html.PartialAsync("_MenuCategory", cat)
+                }
+            </div>
+            <div>
+                @foreach (var cat in foodRight)
+                {
+                    @await Html.PartialAsync("_MenuCategory", cat)
+                }
+            </div>
+        </div>
+    }
 </div>

@@ -401,6 +401,118 @@ textarea.form-control { resize: vertical; min-height: 140px; }
     color: white;
 }
 
+/* Hide Alpine-controlled elements until Alpine initializes */
+[x-cloak] { display: none !important; }
+
+/* Admin menu management */
+.menu-admin-category {
+    background: white;
+    border-radius: 8px;
+    padding: 24px 28px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 12px rgba(44,26,14,0.05);
+}
+.menu-admin-category-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+}
+.menu-admin-category-header h3 {
+    font-family: var(--font-serif);
+    font-size: 1.1rem;
+    color: var(--espresso);
+}
+.menu-admin-category-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+.menu-admin-items {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+.menu-admin-item {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px 16px;
+}
+.menu-admin-item-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+.menu-admin-item-info {
+    flex: 1;
+    min-width: 0;
+}
+.menu-admin-item-name {
+    font-weight: 500;
+    color: var(--charcoal);
+}
+.menu-admin-badge {
+    display: inline-block;
+    margin-left: 8px;
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--terracotta);
+    background: rgba(193,104,58,0.12);
+    border-radius: 10px;
+    padding: 2px 8px;
+    vertical-align: middle;
+}
+.menu-admin-item-ingredients {
+    display: block;
+    font-size: 0.78rem;
+    opacity: 0.55;
+    margin-top: 2px;
+}
+.menu-admin-item-price {
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+    opacity: 0.8;
+    font-size: 0.9rem;
+}
+.menu-admin-item-actions {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    flex-shrink: 0;
+}
+.menu-admin-item-edit {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.menu-admin-item-edit-actions {
+    display: flex;
+    gap: 10px;
+}
+.menu-admin-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: var(--charcoal);
+    opacity: 0.8;
+    cursor: pointer;
+}
+.menu-admin-checkbox input { width: auto; }
+
+@media (max-width: 640px) {
+    .menu-admin-item-row { flex-wrap: wrap; }
+    .menu-admin-item-actions { width: 100%; justify-content: flex-end; }
+}
+
 .admin-login-page  { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--espresso); }
 .login-card  { background: white; border-radius: 8px; padding: 48px 40px; width: 100%; max-width: 400px; box-shadow: 0 12px 48px rgba(0,0,0,0.25); text-align: center; }
 .login-card h1 { font-size: 1.6rem; margin-bottom: 8px; }

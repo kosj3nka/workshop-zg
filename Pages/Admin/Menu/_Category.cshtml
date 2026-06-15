@@ -1,0 +1,117 @@
+@model WorkshopZagreb.Models.MenuCategory
+@{
+    var tab = ViewData["Tab"] as string ?? "pica";
+}
+
+<div class="menu-admin-category" x-data="{ editingCat: false, addingItem: false }">
+
+    <div class="menu-admin-category-header">
+        <h3 x-show="!editingCat" style="margin:0;">@Model.Name</h3>
+
+        <form method="post" asp-page-handler="RenameCategory" x-show="editingCat" x-cloak
+              style="display:flex; gap:8px; flex:1;">
+            <input type="hidden" name="categoryId" value="@Model.Id" />
+            <input type="hidden" name="tab" value="@tab" />
+            <input type="text" name="name" value="@Model.Name" class="form-control" required />
+            <button type="submit" class="btn btn-primary btn-sm">Spremi</button>
+            <button type="button" class="btn btn-outline btn-sm" @@click="editingCat = false">Odustani</button>
+        </form>
+
+        <div class="menu-admin-category-actions">
+            <button type="button" class="btn btn-outline btn-sm" @@click="editingCat = !editingCat">Preimenuj</button>
+
+            <form method="post" asp-page-handler="MoveCategory" style="display:inline-flex; gap:4px;">
+                <input type="hidden" name="categoryId" value="@Model.Id" />
+                <input type="hidden" name="tab" value="@tab" />
+                <button type="submit" name="direction" value="up" class="btn btn-outline btn-sm" title="Pomakni gore">↑</button>
+                <button type="submit" name="direction" value="down" class="btn btn-outline btn-sm" title="Pomakni dolje">↓</button>
+            </form>
+
+            <form method="post" asp-page-handler="DeleteCategory" style="display:inline"
+                  onsubmit="return confirm('Obrisati kategoriju &quot;@Model.Name&quot; i sve njene stavke?')">
+                <input type="hidden" name="categoryId" value="@Model.Id" />
+                <input type="hidden" name="tab" value="@tab" />
+                <button type="submit" class="btn btn-danger btn-sm">Obriši kategoriju</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="menu-admin-items">
+        @if (!Model.Items.Any())
+        {
+            <p class="form-hint">Nema stavki još — dodaj prvu ispod.</p>
+        }
+        @foreach (var item in Model.Items)
+        {
+            <div class="menu-admin-item" x-data="{ editing: false }">
+
+                <div class="menu-admin-item-row" x-show="!editing">
+                    <div class="menu-admin-item-info">
+                        <span class="menu-admin-item-name">
+                            @item.Name
+                            @if (item.IsAddon)
+                            {
+                                <span class="menu-admin-badge">dodatak</span>
+                            }
+                        </span>
+                        @if (!string.IsNullOrWhiteSpace(item.Ingredients))
+                        {
+                            <span class="menu-admin-item-ingredients">@item.Ingredients</span>
+                        }
+                    </div>
+                    <span class="menu-admin-item-price">@(item.IsAddon ? "+ " : "")@item.Price.ToString("0.00").Replace(".", ",") €</span>
+                    <div class="menu-admin-item-actions">
+                        <button type="button" class="btn btn-outline btn-sm" @@click="editing = true">Uredi</button>
+
+                        <form method="post" asp-page-handler="MoveItem" style="display:inline-flex; gap:4px;">
+                            <input type="hidden" name="itemId" value="@item.Id" />
+                            <input type="hidden" name="tab" value="@tab" />
+                            <button type="submit" name="direction" value="up" class="btn btn-outline btn-sm" title="Pomakni gore">↑</button>
+                            <button type="submit" name="direction" value="down" class="btn btn-outline btn-sm" title="Pomakni dolje">↓</button>
+                        </form>
+
+                        <form method="post" asp-page-handler="DeleteItem" style="display:inline"
+                              onsubmit="return confirm('Obrisati &quot;@item.Name&quot;?')">
+                            <input type="hidden" name="itemId" value="@item.Id" />
+                            <input type="hidden" name="tab" value="@tab" />
+                            <button type="submit" class="btn btn-danger btn-sm">Obriši</button>
+                        </form>
+                    </div>
+                </div>
+
+                <form method="post" asp-page-handler="EditItem" x-show="editing" x-cloak class="menu-admin-item-edit">
+                    <input type="hidden" name="itemId" value="@item.Id" />
+                    <input type="hidden" name="tab" value="@tab" />
+                    <input type="text" name="name" value="@item.Name" class="form-control" placeholder="Naziv" required />
+                    <input type="number" name="price" value="@item.Price" step="0.01" min="0" class="form-control" placeholder="Cijena (€)" required />
+                    <input type="text" name="ingredients" value="@item.Ingredients" class="form-control" placeholder="Sastojci (opcionalno)" />
+                    <label class="menu-admin-checkbox">
+                        <input type="checkbox" name="isAddon" value="true" checked="@(item.IsAddon ? "checked" : null)" />
+                        Dodatak (prikazuje se s "+" i manjim slovima)
+                    </label>
+                    <div class="menu-admin-item-edit-actions">
+                        <button type="submit" class="btn btn-primary btn-sm">Spremi</button>
+                        <button type="button" class="btn btn-outline btn-sm" @@click="editing = false">Odustani</button>
+                    </div>
+                </form>
+            </div>
+        }
+    </div>
+
+    <button type="button" class="btn btn-outline btn-sm" @@click="addingItem = !addingItem">+ Dodaj stavku</button>
+
+    <form method="post" asp-page-handler="AddItem" x-show="addingItem" x-cloak class="menu-admin-item-edit" style="margin-top:12px;">
+        <input type="hidden" name="categoryId" value="@Model.Id" />
+        <input type="hidden" name="tab" value="@tab" />
+        <input type="text" name="name" class="form-control" placeholder="Naziv (npr. Cappuccino)" required />
+        <input type="number" name="price" step="0.01" min="0" class="form-control" placeholder="Cijena (€)" required />
+        <input type="text" name="ingredients" class="form-control" placeholder="Sastojci (opcionalno)" />
+        <label class="menu-admin-checkbox">
+            <input type="checkbox" name="isAddon" value="true" />
+            Dodatak (prikazuje se s "+" i manjim slovima)
+        </label>
+        <div class="menu-admin-item-edit-actions">
+            <button type="submit" class="btn btn-primary btn-sm">Dodaj stavku</button>
+        </div>
+    </form>
+</div>
