@@ -445,6 +445,22 @@ textarea.form-control { resize: vertical; min-height: 140px; }
 .static-content     { max-width: 720px; margin: 0 auto; padding: 0 24px; }
 .static-content p   { margin-bottom: 20px; font-size: 1rem; line-height: 1.82; }
 
+/* MENU */
+.menu-notice        { text-align: center; font-size: 0.9rem; opacity: 0.65; margin-bottom: 56px; padding: 14px 20px; border-top: 1px solid rgba(0,0,0,0.08); border-bottom: 1px solid rgba(0,0,0,0.08); }
+.menu-grid          { display: grid; grid-template-columns: 1fr 1fr; gap: 0 60px; max-width: 900px; margin: 0 auto; padding: 0 24px; }
+.menu-section       { margin-bottom: 44px; }
+.menu-section h2    { font-family: var(--font-body); font-size: 0.7rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--clr-accent); margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid rgba(0,0,0,0.1); }
+.menu-item          { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 5px 0; font-size: 0.93rem; }
+.menu-item-name     { flex: 1; }
+.menu-item-price    { white-space: nowrap; font-variant-numeric: tabular-nums; opacity: 0.8; }
+.menu-addon         { font-size: 0.82rem; opacity: 0.55; margin-top: 10px; padding-top: 10px; border-top: 1px dashed rgba(0,0,0,0.1); }
+.menu-addon .menu-item { font-size: 0.82rem; }
+.menu-legal         { grid-column: 1 / -1; font-size: 0.75rem; opacity: 0.45; margin-top: 20px; }
+@media (max-width: 620px) {
+  .menu-grid { grid-template-columns: 1fr; gap: 0; }
+  .menu-legal { grid-column: 1; }
+}
+
 /* FAQ */
 .faq-item       { border-bottom: 1px solid var(--border); }
 .faq-question   { width: 100%; text-align: left; background: none; border: none; padding: 24px 0; font-family: var(--font-serif); font-size: 1.05rem; color: var(--espresso); cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 16px; }
