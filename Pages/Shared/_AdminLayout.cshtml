@@ -8,21 +8,38 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="~/css/site.css" />
+    <link rel="icon" type="image/png" href="/images/justLogo.png" />
 </head>
 <body class="admin-body">
 
     <nav class="admin-navbar">
         <span class="brand">Workshop Zagreb — Admin</span>
         <div style="display:flex; gap:24px; align-items:center;">
-            <a href="/admin">Workshops</a>
-            <a href="/admin/menu">Meni</a>
-            <a href="/admin/reserved">Reserved Days</a>
             <a href="/" target="_blank">↗ View site</a>
             <a href="/admin/logout"
                style="color:rgba(255,255,255,0.5);"
                onclick="return confirm('Log out?')">Log out</a>
         </div>
     </nav>
+
+    @{
+        var path = Context.Request.Path.ToString().TrimEnd('/').ToLower();
+        bool isWorkshops = path == "/admin" || path.StartsWith("/admin/workshops");
+        bool isMenu      = path.StartsWith("/admin/menu");
+        bool isReserved  = path.StartsWith("/admin/reserved");
+    }
+
+    <div class="admin-section-tabs">
+        <a href="/admin" class="admin-section-tab @(isWorkshops ? "active" : "")">
+            <span>Workshops</span>
+        </a>
+        <a href="/admin/reserved" class="admin-section-tab @(isReserved ? "active" : "")">
+            <span>Reserved</span>
+        </a>
+        <a href="/admin/menu" class="admin-section-tab @(isMenu ? "active" : "")">
+            <span>Meni</span>
+        </a>
+    </div>
 
     <div class="admin-container">
         @RenderBody()

@@ -1,0 +1,24 @@
+@page "/newsletter/unsubscribe"
+@model WorkshopZagreb.Pages.Newsletter.UnsubscribeModel
+@{ Layout = "_Layout"; ViewData["Title"] = "Odjava"; }
+
+<div class="static-page">
+    <div class="static-page-header">
+        @if (Model.AlreadyDone)
+        {
+            <h1>Već si odjavljen/a</h1>
+            <p>Tvoja adresa više nije na našoj listi.</p>
+        }
+        else if (Model.Success)
+        {
+            <h1>Odjavljen/a si</h1>
+            <p>Više nećeš primati newsletter od Workshop Zagreb.</p>
+        }
+        else
+        {
+            <h1>Neispravan link</h1>
+            <p>Link za odjavu nije valjan ili je već istekao.</p>
+        }
+        <p style="margin-top:32px;"><a href="/" style="color:var(--clr-accent);">← Natrag na početnu</a></p>
+    </div>
+</div>

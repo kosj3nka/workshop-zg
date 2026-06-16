@@ -33,9 +33,12 @@ public class Workshop
     // Manually hidden by admin — stays in archive tab regardless of date
     public bool IsArchived { get; set; }
 
+    // Pinned workshops are always visible at the top — no specific date
+    public bool IsPinned { get; set; }
+
     // A workshop can have multiple photos
     public List<WorkshopPhoto> Photos { get; set; } = new();
 
     // Helper: is this workshop visible as upcoming?
-    public bool IsUpcoming => !IsArchived && Date >= DateTime.Today;
+    public bool IsUpcoming => !IsArchived && !IsPinned && Date >= DateTime.Today;
 }

@@ -7,7 +7,8 @@
 
 <div class="admin-top-bar">
     <h1 class="admin-page-title">Workshops</h1>
-    <a href="/admin/workshops/new" class="btn btn-primary">+ Add workshop</a>
+    <a href="/admin/workshops/new" class="btn btn-primary" id="btn-add-workshop">+ Add workshop</a>
+    <a href="/admin/workshops/new" class="btn btn-outline" id="btn-add-pinned" style="display:none">+ Add pinned event</a>
 </div>
 
 <div class="admin-tabs">
@@ -23,6 +24,13 @@
         @if (Model.PastWorkshops.Any())
         {
             <span class="admin-tab-count">@Model.PastWorkshops.Count</span>
+        }
+    </button>
+    <button class="admin-tab-btn" onclick="switchTab('pinned', this)">
+        Pinned
+        @if (Model.PinnedWorkshops.Any())
+        {
+            <span class="admin-tab-count">@Model.PinnedWorkshops.Count</span>
         }
     </button>
 </div>
@@ -121,11 +129,55 @@
     }
 </div>
 
+@* ── PINNED tab ── *@
+<div id="tab-pinned" class="admin-tab-panel" style="display:none">
+    @if (!Model.PinnedWorkshops.Any())
+    {
+        <div class="workshops-empty">
+            <p>Nema pinned evenata. <a href="/admin/workshops/new" style="color:var(--terracotta)">Dodaj prvi →</a></p>
+        </div>
+    }
+    else
+    {
+        <div class="admin-list">
+            @foreach (var w in Model.PinnedWorkshops)
+            {
+                <div class="admin-list-item">
+                    <div style="display:flex;align-items:center;gap:16px;flex:1;min-width:0;">
+                        @if (!string.IsNullOrEmpty(w.BannerUrl))
+                        {
+                            <img src="@w.BannerUrl" alt=""
+                                 style="width:56px;height:40px;object-fit:cover;flex-shrink:0;" />
+                        }
+                        else
+                        {
+                            <div style="width:56px;height:40px;background:var(--cream);flex-shrink:0;border:1px solid var(--border);"></div>
+                        }
+                        <div class="admin-list-item-info">
+                            <h3>@w.Name</h3>
+                            <p>@(w.Price.HasValue ? $"od {w.Price:0} €" : "Cijena po upitu") @(w.MaxParticipants.HasValue ? $" · max {w.MaxParticipants}" : "")</p>
+                        </div>
+                    </div>
+                    <div class="admin-list-item-actions">
+                        <a href="/admin/workshops/edit/@w.Id" class="btn btn-outline btn-sm">Edit</a>
+                        <form method="post" asp-page-handler="Delete" asp-route-id="@w.Id"
+                              onsubmit="return confirm('Obriši @w.Name?')">
+                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                        </form>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
 <script>
 function switchTab(name, btn) {
     document.querySelectorAll('.admin-tab-panel').forEach(function(p) { p.style.display = 'none'; });
     document.querySelectorAll('.admin-tab-btn').forEach(function(b) { b.classList.remove('active'); });
     document.getElementById('tab-' + name).style.display = '';
     btn.classList.add('active');
+    document.getElementById('btn-add-workshop').style.display = name === 'pinned' ? 'none' : '';
+    document.getElementById('btn-add-pinned').style.display = name === 'pinned' ? '' : 'none';
 }
 </script>

@@ -109,6 +109,28 @@ All admin routes must be behind `[Authorize]`.
 
 ---
 
+## Inquiry Forms (Suradnja page)
+
+Both forms live on the existing `/suradnja` page — it's already the destination for people who want to collaborate or host. Add two clearly separated sections below the current content, letting visitors toggle between them (or just scroll to the right one).
+
+### Private event reservation form
+- 🟡 Fields: Name, Email, Phone, Date (date picker), Estimated guests (number), Message/details
+- 🟡 On submit: send email to `hello@workshopzagreb.com` via the existing `EmailService` (Google Workspace SMTP)
+- 🟡 Show inline success message; no redirect
+
+### Host a workshop / event form
+- 🟡 Fields: Name, Email, Organisation/brand (optional), Event type (dropdown: Radionica / Privatni event / Brand suradnja / Ostalo), Preferred dates (text), Message
+- 🟡 Same email delivery as above
+- 🟡 Show inline success message
+
+### Implementation notes
+- Add a `ContactModel` (Razor Page handler or API endpoint) — no DB needed, just fire-and-forget email
+- Reuse `IEmailService.SendOneAsync` (make it internal or add `SendContactAsync`)
+- Add honeypot hidden field for basic spam protection
+- GDPR note under submit button (same pattern as newsletter popup)
+
+---
+
 ## Future / Out of Scope for V1
 
 - 🟢 **Online payments** — Stripe integration for paid bookings directly on site

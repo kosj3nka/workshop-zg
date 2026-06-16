@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using WorkshopZagreb.Data;
 using WorkshopZagreb.Models;
+using WorkshopZagreb.Services;
 using System.Text.Json;
 
 namespace WorkshopZagreb.Pages.Api;
@@ -11,7 +12,13 @@ namespace WorkshopZagreb.Pages.Api;
 public class SubscribeModel : PageModel
 {
     private readonly AppDbContext _db;
-    public SubscribeModel(AppDbContext db) => _db = db;
+    private readonly IEmailService _email;
+
+    public SubscribeModel(AppDbContext db, IEmailService email)
+    {
+        _db = db;
+        _email = email;
+    }
 
     public async Task<IActionResult> OnPostAsync()
     {
@@ -28,13 +35,16 @@ public class SubscribeModel : PageModel
         if (existing != null)
             return new JsonResult(new { ok = true });
 
-        _db.Subscribers.Add(new Subscriber
+        var subscriber = new Subscriber
         {
             Email = email,
             Token = Guid.NewGuid().ToString(),
             ConfirmedAt = DateTime.UtcNow,
-        });
+        };
+        _db.Subscribers.Add(subscriber);
         await _db.SaveChangesAsync();
+
+        _ = _email.SendConfirmationAsync(email, subscriber.Token);
 
         return new JsonResult(new { ok = true });
     }

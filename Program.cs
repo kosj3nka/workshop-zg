@@ -27,6 +27,9 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // Our custom file upload service
 builder.Services.AddScoped<IFileService, FileService>();
 
+// Email service — sends via Google Workspace SMTP
+builder.Services.AddScoped<IEmailService, EmailService>();
+
 // Session for admin login
 builder.Services.AddSession(options =>
 {
@@ -84,6 +87,34 @@ using (var scope = app.Services.CreateScope())
     }
     catch { /* column already present — safe to ignore */ }
 
+    // IsPinned column added June 2026 — pinned workshops appear at the top with no date
+    try
+    {
+        db.Database.ExecuteSqlRaw(
+            "ALTER TABLE Workshops ADD COLUMN IsPinned INTEGER NOT NULL DEFAULT 0");
+    }
+    catch { /* column already present — safe to ignore */ }
+
+    // Seed birthday workshop as a pinned Workshop if none exist yet
+    if (!db.Workshops.Any(w => w.IsPinned))
+    {
+        db.Workshops.Add(new Workshop
+        {
+            Name = "Rođendanska radionica",
+            Date = new DateTime(2099, 1, 1),
+            StartTime = TimeSpan.Zero,
+            Description = "Proslavite poseban dan na jedinstven način — rezervirajte naš prostor za svoju skupinu i zajedno naučite nešto novo. Odaberite temu radionice po želji i mi organiziramo sve ostalo.",
+            InstagramPostUrl = "",
+            Price = 25,
+            MaxParticipants = 15,
+            Slug = "rodendanska-radionica",
+            IsPinned = true,
+            IsArchived = false,
+            CreatedAt = DateTime.UtcNow
+        });
+        db.SaveChanges();
+    }
+
     // Menu tables added June 2026 — editable Meni (Pića / Hrana) for the admin panel
     db.Database.ExecuteSqlRaw(@"
         CREATE TABLE IF NOT EXISTS MenuCategories (
@@ -104,6 +135,33 @@ using (var scope = app.Services.CreateScope())
             DisplayOrder   INTEGER NOT NULL DEFAULT 0,
             FOREIGN KEY (MenuCategoryId) REFERENCES MenuCategories(Id) ON DELETE CASCADE
         )");
+
+    // PinnedWorkshops table — always-available reservable events (birthday, team building, etc.)
+    db.Database.ExecuteSqlRaw(@"
+        CREATE TABLE IF NOT EXISTS PinnedWorkshops (
+            Id            INTEGER PRIMARY KEY AUTOINCREMENT,
+            Name          TEXT    NOT NULL,
+            Description   TEXT    NOT NULL,
+            Subtitle      TEXT,
+            BannerUrl     TEXT,
+            StartingPrice REAL,
+            IsActive      INTEGER NOT NULL DEFAULT 1,
+            DisplayOrder  INTEGER NOT NULL DEFAULT 0
+        )");
+
+    if (!db.PinnedWorkshops.Any())
+    {
+        db.PinnedWorkshops.Add(new PinnedWorkshop
+        {
+            Name = "Rođendanska radionica",
+            Description = "Proslavite poseban dan na jedinstven način — rezervirajte naš prostor za svoju skupinu i zajedno naučite nešto novo. Odaberite temu radionice po želji i mi organiziramo sve ostalo.",
+            Subtitle = "Privatni event za do 15 osoba",
+            StartingPrice = 25,
+            IsActive = true,
+            DisplayOrder = 0
+        });
+        db.SaveChanges();
+    }
 
     // Seed the menu once, from the content that used to be hardcoded in Meni.cshtml.
     // Only runs the first time (when the table is still empty), so it never

@@ -46,32 +46,56 @@
                class="form-control" required placeholder="npr. Akvarel za početnike" />
     </div>
 
-    <div class="form-row">
-        <div class="form-group">
-            <label class="form-label">Datum <span class="required">*</span></label>
-            <input type="date" name="Input.Date" value="@Model.Input.Date.ToString("yyyy-MM-dd")"
-                   class="form-control" required />
-        </div>
-        <div class="form-group">
-            <label class="form-label">Početak <span class="required">*</span></label>
-            <input type="time" name="Input.StartTime" value="@Model.Input.StartTime.ToString(@"hh\:mm")"
-                   class="form-control" required />
-        </div>
+    <div class="form-group">
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+            <input type="hidden" name="Input.IsPinned" value="false" />
+            <input type="checkbox" id="chk-pinned" name="Input.IsPinned" value="true"
+                   @(Model.Input.IsPinned ? "checked" : "") style="width:16px;height:16px;"
+                   onchange="toggleDateRow(this.checked)" />
+            <span class="form-label" style="margin:0;">Pinned event (uvijek vidljiv, bez specifičnog datuma)</span>
+        </label>
     </div>
 
-    <div class="form-row">
+    <div id="date-row" style="display:@(Model.Input.IsPinned ? "none" : "")">
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">Datum <span class="required">*</span></label>
+                <input type="date" id="input-date" name="Input.Date" value="@Model.Input.Date.ToString("yyyy-MM-dd")"
+                       class="form-control" @(Model.Input.IsPinned ? "" : "required") />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Početak <span class="required">*</span></label>
+                <input type="time" id="input-starttime" name="Input.StartTime" value="@Model.Input.StartTime.ToString(@"hh\:mm")"
+                       class="form-control" @(Model.Input.IsPinned ? "" : "required") />
+            </div>
+        </div>
         <div class="form-group">
             <label class="form-label">Kraj <span style="opacity:0.5;font-weight:400;">(opcionalno)</span></label>
             <input type="time" name="Input.EndTime"
                    value="@(Model.Input.EndTime.HasValue ? Model.Input.EndTime.Value.ToString(@"hh\:mm") : "")"
                    class="form-control" />
         </div>
-        <div class="form-group">
-            <label class="form-label">Cijena (€)</label>
-            <input type="number" name="Input.Price" value="@Model.Input.Price"
-                   class="form-control" min="0" step="1" placeholder="0 = besplatno" />
-        </div>
     </div>
+
+    <div class="form-group">
+        <label class="form-label">Cijena (€) <span style="opacity:0.5;font-weight:400;">(opcionalno)</span></label>
+        <input type="number" name="Input.Price" value="@Model.Input.Price"
+               class="form-control" min="0" step="1" placeholder="npr. 25" />
+        <p class="form-hint" id="price-hint-regular" style="display:@(Model.Input.IsPinned ? "none" : "")">0 ili prazno = besplatno</p>
+        <p class="form-hint" id="price-hint-pinned" style="display:@(Model.Input.IsPinned ? "" : "none")">Prikazuje se kao "od X €" na kartici.</p>
+    </div>
+
+    <script>
+    function toggleDateRow(isPinned) {
+        document.getElementById('date-row').style.display = isPinned ? 'none' : '';
+        document.getElementById('price-hint-regular').style.display = isPinned ? 'none' : '';
+        document.getElementById('price-hint-pinned').style.display = isPinned ? '' : 'none';
+        var dateInput = document.getElementById('input-date');
+        var timeInput = document.getElementById('input-starttime');
+        dateInput.required = !isPinned;
+        timeInput.required = !isPinned;
+    }
+    </script>
 
     <div class="form-group">
         <label class="form-label">Opis <span class="required">*</span></label>

@@ -10,50 +10,77 @@
         <p>Every week a different discipline, a different host, a different way of seeing things. Show up curious — we handle the rest.</p>
     </div>
 
-    @if (Model.Workshops.Any())
-    {
-        <div class="workshops-grid">
-            @foreach (var w in Model.Workshops)
-            {
-                bool hasLogo = !string.IsNullOrEmpty(w.LogoUrl)
-                               && w.LogoUrl != "/images/workshops/placeholder-logo.png";
-                <a href="/workshops/@w.Slug" class="workshop-card @(hasLogo ? "has-logo" : "")">
-                    <div class="workshop-card-banner">
-                        @if (!string.IsNullOrEmpty(w.BannerUrl))
-                        {
-                            <img src="@w.BannerUrl" alt="@w.Name" />
-                        }
-                    </div>
-                    @if (hasLogo)
+    <!-- CTA bar — private events link -->
+    <div class="workshops-cta-bar">
+        <div class="workshops-cta-inner">
+            <p>Planirate privatni event, team building ili vlastitu radionicu u našem prostoru?</p>
+            <a href="/suradnja#upit" class="btn btn-outline btn-sm">Rezervirajte →</a>
+        </div>
+    </div>
+
+    <div class="workshops-grid">
+        <!-- Pinned / always-reservable at the top -->
+        @foreach (var p in Model.PinnedWorkshops)
+        {
+            <a href="/suradnja#upit" class="workshop-card">
+                <div class="workshop-card-banner">
+                    @if (!string.IsNullOrEmpty(p.BannerUrl))
                     {
-                        <div class="workshop-card-logo-wrap">
-                            <img src="@w.LogoUrl" alt="@w.Name" />
-                        </div>
+                        <img src="@p.BannerUrl" alt="@p.Name" />
                     }
-                    <div class="workshop-card-body">
-                        <p class="workshop-card-date">
-                            @w.Date.ToString("dddd, MMMM d, yyyy", new System.Globalization.CultureInfo("en-US"))
-                        </p>
-                        <h3 class="workshop-card-title">@w.Name</h3>
-                        <p class="workshop-card-time">
-                            @w.StartTime.ToString(@"hh\:mm")
-                            @(w.EndTime.HasValue ? " – " + w.EndTime.Value.ToString(@"hh\:mm") : "")
-                        </p>
-                        <p class="workshop-card-desc">@w.Description</p>
+                </div>
+                <div class="workshop-card-body">
+                    <p class="workshop-card-date">Uvijek dostupno</p>
+                    <h3 class="workshop-card-title">@p.Name</h3>
+                    <p class="workshop-card-desc">@p.Description</p>
+                </div>
+                <div class="workshop-card-footer">
+                    <span class="btn btn-outline btn-sm">Rezervirajte →</span>
+                </div>
+            </a>
+        }
+
+        <!-- Upcoming scheduled workshops -->
+        @foreach (var w in Model.Workshops)
+        {
+            bool hasLogo = !string.IsNullOrEmpty(w.LogoUrl)
+                           && w.LogoUrl != "/images/workshops/placeholder-logo.png";
+            <a href="/workshops/@w.Slug" class="workshop-card @(hasLogo ? "has-logo" : "")">
+                <div class="workshop-card-banner">
+                    @if (!string.IsNullOrEmpty(w.BannerUrl))
+                    {
+                        <img src="@w.BannerUrl" alt="@w.Name" />
+                    }
+                </div>
+                @if (hasLogo)
+                {
+                    <div class="workshop-card-logo-wrap">
+                        <img src="@w.LogoUrl" alt="@w.Name" />
                     </div>
-                    <div class="workshop-card-footer">
-                        <span class="workshop-price">@(w.Price.HasValue ? $"{w.Price:0} €" : "Free")</span>
-                        <span class="btn btn-outline btn-sm">Details</span>
-                    </div>
-                </a>
-            }
-        </div>
-    }
-    else
-    {
-        <div class="workshops-empty">
-            <p>No upcoming workshops at the moment.<br>
-               Follow us on <a href="https://instagram.com/workshop.zagreb" style="color:var(--terracotta)">Instagram</a> for updates.</p>
-        </div>
-    }
+                }
+                <div class="workshop-card-body">
+                    <p class="workshop-card-date">
+                        @w.Date.ToString("dddd, MMMM d, yyyy", new System.Globalization.CultureInfo("en-US"))
+                    </p>
+                    <h3 class="workshop-card-title">@w.Name</h3>
+                    <p class="workshop-card-time">
+                        @w.StartTime.ToString(@"hh\:mm")
+                        @(w.EndTime.HasValue ? " – " + w.EndTime.Value.ToString(@"hh\:mm") : "")
+                    </p>
+                    <p class="workshop-card-desc">@w.Description</p>
+                </div>
+                <div class="workshop-card-footer">
+                    <span class="btn btn-outline btn-sm">Detalji</span>
+                </div>
+            </a>
+        }
+
+        @if (!Model.Workshops.Any() && !Model.PinnedWorkshops.Any())
+        {
+            <div class="workshops-empty">
+                <p>Trenutno nema nadolazećih radionica.<br>
+                   Pratite nas na <a href="https://instagram.com/workshop.zagreb" style="color:var(--terracotta)">Instagramu</a> za najave.</p>
+            </div>
+        }
+    </div>
 </div>

@@ -93,6 +93,10 @@ else
                         @(w.MaxParticipants.HasValue ? $"Max {w.MaxParticipants} participants" : "Open registration")
                     </p>
 
+                    <a href="@GoogleCalendarHelper.BuildAddToCalendarUrl(w)" target="_blank" rel="noopener" class="btn btn-outline">
+                        + Add to Google Calendar
+                    </a>
+
                     @if (w.Price.HasValue)
                     {
                         if (!string.IsNullOrEmpty(w.EntrioUrl))

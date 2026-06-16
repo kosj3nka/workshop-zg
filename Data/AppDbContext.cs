@@ -18,6 +18,7 @@ public class AppDbContext : DbContext
     public DbSet<ReservedDay> ReservedDays => Set<ReservedDay>();
     public DbSet<MenuCategory> MenuCategories => Set<MenuCategory>();
     public DbSet<MenuItem> MenuItems => Set<MenuItem>();
+    public DbSet<PinnedWorkshop> PinnedWorkshops => Set<PinnedWorkshop>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

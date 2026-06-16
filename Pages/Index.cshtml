@@ -282,6 +282,37 @@
     </div>
 </section>
 
+<!-- ============= NEWSLETTER ============= -->
+<section class="home-newsletter">
+    <div class="home-newsletter-inner">
+        <div class="home-newsletter-text">
+            <p class="mood-eyebrow">Newsletter</p>
+            <h2>Budite prvi koji znaju.</h2>
+            <p>Nova radionica, poseban event, vijest iz kafića — jednom ili dvaput mjesečno. Bez spama.</p>
+        </div>
+        <form class="home-newsletter-form"
+              x-data="{ email:'', submitted:false, error:'' }"
+              x-on:submit.prevent="
+                fetch('/api/subscribe', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email }) })
+                  .then(r => r.json())
+                  .then(d => { if (d.ok) { submitted = true; localStorage.setItem('newsletter_dismissed','1'); } else { error = d.message || 'Greška.'; } })
+                  .catch(() => { error = 'Greška. Pokušajte ponovo.'; })
+              ">
+            <template x-if="submitted">
+                <p class="home-newsletter-thanks">Hvala! Provjerite inbox.</p>
+            </template>
+            <template x-if="!submitted">
+                <div class="home-newsletter-row">
+                    <input type="email" x-model="email" placeholder="vaš@email.com" required class="home-newsletter-input" />
+                    <button type="submit" class="btn btn-primary">Prijavi se</button>
+                </div>
+            </template>
+            <p x-show="error" x-text="error" style="color:#c0392b;font-size:0.8rem;margin-top:8px;"></p>
+            <p class="home-newsletter-gdpr">Prijavom prihvaćate našu <a href="/privacy">politiku privatnosti</a>.</p>
+        </form>
+    </div>
+</section>
+
 <!-- ============= INSTAGRAM CTA ============= -->
 <section class="instagram-cta">
     <p class="mood-eyebrow">Follow Us</p>

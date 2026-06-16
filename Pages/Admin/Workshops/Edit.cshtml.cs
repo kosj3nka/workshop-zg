@@ -11,11 +11,13 @@ public class WorkshopEditModel : PageModel
 {
     private readonly AppDbContext _db;
     private readonly IFileService _files;
+    private readonly IEmailService _email;
 
-    public WorkshopEditModel(AppDbContext db, IFileService files)
+    public WorkshopEditModel(AppDbContext db, IFileService files, IEmailService email)
     {
         _db = db;
         _files = files;
+        _email = email;
     }
 
     // -------------------------------------------------------
@@ -67,6 +69,7 @@ public class WorkshopEditModel : PageModel
             {
                 Id = workshop.Id,
                 Name = workshop.Name,
+                IsPinned = workshop.IsPinned,
                 Date = workshop.Date,
                 StartTime = workshop.StartTime,
                 EndTime = workshop.EndTime,
@@ -124,9 +127,10 @@ public class WorkshopEditModel : PageModel
             var workshop = new Workshop
             {
                 Name = Input.Name,
-                Date = Input.Date,
-                StartTime = Input.StartTime,
-                EndTime = Input.EndTime,
+                IsPinned = Input.IsPinned,
+                Date = Input.IsPinned ? new DateTime(2099, 1, 1) : Input.Date,
+                StartTime = Input.IsPinned ? TimeSpan.Zero : Input.StartTime,
+                EndTime = Input.IsPinned ? null : Input.EndTime,
                 Description = Input.Description,
                 Price = Input.Price,
                 MaxParticipants = Input.MaxParticipants,
@@ -145,6 +149,10 @@ public class WorkshopEditModel : PageModel
 
             // Save additional photos
             await SavePhotosAsync(workshop.Id);
+
+            // Notify all active subscribers about the new workshop
+            var newSubs = await ActiveSubscribersAsync();
+            _ = _email.SendWorkshopAnnouncementAsync(workshop, newSubs);
         }
         else
         {
@@ -152,10 +160,13 @@ public class WorkshopEditModel : PageModel
             var workshop = await _db.Workshops.FindAsync(Input.Id);
             if (workshop == null) return NotFound();
 
+            bool wasArchived = workshop.IsArchived || workshop.Date < DateTime.Today;
+
             workshop.Name = Input.Name;
-            workshop.Date = Input.Date;
-            workshop.StartTime = Input.StartTime;
-            workshop.EndTime = Input.EndTime;
+            workshop.IsPinned = Input.IsPinned;
+            workshop.Date = Input.IsPinned ? new DateTime(2099, 1, 1) : Input.Date;
+            workshop.StartTime = Input.IsPinned ? TimeSpan.Zero : Input.StartTime;
+            workshop.EndTime = Input.IsPinned ? null : Input.EndTime;
             workshop.Description = Input.Description;
             workshop.Price = Input.Price;
             workshop.MaxParticipants = Input.MaxParticipants;
@@ -164,6 +175,11 @@ public class WorkshopEditModel : PageModel
             workshop.HostName = Input.HostName;
             workshop.HostInstagram = Input.HostInstagram;
             workshop.HostWebsite = Input.HostWebsite;
+
+            // Reviving from archive: clear the flag and notify subscribers
+            bool isRevival = wasArchived && Input.Date >= DateTime.Today;
+            if (isRevival)
+                workshop.IsArchived = false;
 
             // Replace banner if a new file was uploaded
             if (BannerFile != null)
@@ -181,6 +197,12 @@ public class WorkshopEditModel : PageModel
 
             await _db.SaveChangesAsync();
             await SavePhotosAsync(workshop.Id);
+
+            if (isRevival)
+            {
+                var reviveSubs = await ActiveSubscribersAsync();
+                _ = _email.SendWorkshopAnnouncementAsync(workshop, reviveSubs);
+            }
         }
 
         return RedirectToPage("/Admin/Index");
@@ -226,6 +248,11 @@ public class WorkshopEditModel : PageModel
         await _db.SaveChangesAsync();
     }
 
+    private Task<List<Subscriber>> ActiveSubscribersAsync() =>
+        _db.Subscribers
+            .Where(s => s.ConfirmedAt != null && s.UnsubscribedAt == null)
+            .ToListAsync();
+
     // Helper: makes "Akvarel za početnike" → "akvarel-za-pocetnike"
     // and adds "-2" if that slug is already taken
     private async Task<string> GenerateUniqueSlugAsync(string name)
@@ -247,6 +274,7 @@ public class WorkshopInputModel
 {
     public int Id { get; set; }
     public string Name { get; set; } = "";
+    public bool IsPinned { get; set; }
     public DateTime Date { get; set; } = DateTime.Today;
     public TimeSpan StartTime { get; set; } = new TimeSpan(14, 0, 0);
     public TimeSpan? EndTime { get; set; }

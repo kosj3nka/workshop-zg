@@ -12,9 +12,9 @@ public class AdminIndexModel : PageModel
     public AdminIndexModel(AppDbContext db) => _db = db;
 
     public List<Workshop> UpcomingWorkshops { get; set; } = new();
-    public List<Workshop> PastWorkshops { get; set; } = new();
+    public List<Workshop> PastWorkshops     { get; set; } = new();
+    public List<Workshop> PinnedWorkshops   { get; set; } = new();
 
-    // Helper that every admin page calls to check session before doing anything
     private IActionResult? CheckAuth()
     {
         if (HttpContext.Session.GetString("AdminLoggedIn") != "yes")
@@ -28,43 +28,32 @@ public class AdminIndexModel : PageModel
         if (redirect != null) return redirect;
 
         var all = await _db.Workshops.OrderBy(w => w.Date).ToListAsync();
+        PinnedWorkshops   = all.Where(w => !w.IsArchived && w.IsPinned).ToList();
         UpcomingWorkshops = all.Where(w => w.IsUpcoming).ToList();
-        PastWorkshops     = all.Where(w => !w.IsUpcoming).OrderByDescending(w => w.Date).ToList();
+        PastWorkshops     = all.Where(w => !w.IsPinned && !w.IsUpcoming).OrderByDescending(w => w.Date).ToList();
         return Page();
     }
 
-    // Moves a live workshop to the archive tab
     public async Task<IActionResult> OnPostArchiveAsync(int id)
     {
         var redirect = CheckAuth();
         if (redirect != null) return redirect;
 
         var workshop = await _db.Workshops.FindAsync(id);
-        if (workshop != null)
-        {
-            workshop.IsArchived = true;
-            await _db.SaveChangesAsync();
-        }
-
+        if (workshop != null) { workshop.IsArchived = true; await _db.SaveChangesAsync(); }
         return RedirectToPage();
     }
 
-    // Handles the delete button form submission (asp-page-handler="Delete")
     public async Task<IActionResult> OnPostDeleteAsync(int id)
     {
         var redirect = CheckAuth();
         if (redirect != null) return redirect;
 
-        var workshop = await _db.Workshops
-            .Include(w => w.Photos)
-            .FirstOrDefaultAsync(w => w.Id == id);
-
-        if (workshop != null)
-        {
-            _db.Workshops.Remove(workshop); // Cascade deletes photos too
-            await _db.SaveChangesAsync();
-        }
-
+        var workshop = await _db.Workshops.Include(w => w.Photos).FirstOrDefaultAsync(w => w.Id == id);
+        if (workshop != null) { _db.Workshops.Remove(workshop); await _db.SaveChangesAsync(); }
         return RedirectToPage();
     }
+
+    // Kept for backward compat in case any old link still calls it
+    public Task<IActionResult> OnPostDeletePinnedAsync(int id) => OnPostDeleteAsync(id);
 }

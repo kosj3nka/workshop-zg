@@ -23,7 +23,7 @@
                 <p class="about-eyebrow">Za kreativce i stručnjake</p>
                 <h2>Vodite radionicu u Workshopu</h2>
                 <p>
-                    Jeste li stručnjak, zanatlija, kuhar, artist ili predavač? Workshop je otvorena platforma — svi zainteresirani kreativci koji žele održavati radionice ili evente mogu nam se javiti putem Instagrama.
+                    Jeste li stručnjak, zanatlija, kuhar, artist ili predavač? Workshop je otvorena platforma — svi zainteresirani kreativci koji žele održavati radionice ili evente mogu nam se javiti.
                 </p>
                 <p>
                     Naš prostor poslijepodne postaje vaš. Mi osiguravamo atmosferu, kavu i publiku — vi donosite znanje i energiju.
@@ -36,9 +36,9 @@
                     <li>Kavu dobrodošlice za polaznike</li>
                     <li>Fleksibilne termine (radnim danima od 15h, vikendima po dogovoru)</li>
                 </ul>
-                <a href="https://www.instagram.com/workshop.zagreb/" target="_blank" rel="noopener"
+                <a href="#upit" onclick="preselectType('radionica')"
                    class="btn btn-primary" style="margin-top:28px;">
-                    Javite nam se na Instagramu ↗
+                    Pošaljite upit →
                 </a>
             </div>
         </div>
@@ -73,25 +73,221 @@
                 <p style="margin-top:20px; font-size:0.9rem; opacity:0.65;">
                     Cijenimo autentičnost — partnerstva biramo pažljivo kako bi odgovarala karakteru prostora i naše zajednice.
                 </p>
-                <a href="https://www.instagram.com/workshop.zagreb/" target="_blank" rel="noopener"
+                <a href="#upit" onclick="preselectType('marketing')"
                    class="btn btn-outline" style="margin-top:28px;">
-                    Upit za suradnju ↗
+                    Pošaljite upit →
                 </a>
             </div>
         </div>
     </section>
 
-    <!-- BOTTOM CTA -->
-    <section class="suradnja-bottom-cta">
-        <div class="container-narrow" style="text-align:center;">
-            <h2>Imate ideju?</h2>
-            <p style="opacity:0.75; margin:16px 0 32px; font-size:1.05rem;">
-                Svaka suradnja je drugačija — javite nam se i razgovarajmo o tome što biste zajedno mogli stvoriti.
-            </p>
-            <a href="https://www.instagram.com/workshop.zagreb/" target="_blank" rel="noopener" class="btn btn-primary">
-                Pišite nam na Instagram ↗
-            </a>
+    <!-- CONTACT FORM -->
+    <section id="upit" class="suradnja-inquiry">
+        <div class="suradnja-inquiry-inner">
+
+            <div class="suradnja-inquiry-header">
+                <p class="about-eyebrow">Kontakt</p>
+                <h2>Pošaljite upit</h2>
+                <p class="suradnja-inquiry-sub">Ispunite obrazac i javit ćemo vam se u roku dan-dva.</p>
+            </div>
+
+            @if (Model.Sent)
+            {
+                <div class="inquiry-success">
+                    <p>Hvala! Primili smo vaš upit i javit ćemo vam se uskoro.</p>
+                </div>
+            }
+            else
+            {
+                <form method="post" class="inquiry-form" id="inquiry-form">
+                    <input type="hidden" name="Input.Type" id="inquiry-type-val" value="@Model.Input.Type" />
+
+                    <!-- STEP 1: type selector -->
+                    <div class="inquiry-step">
+                        <p class="inquiry-step-label">Što vas zanima?</p>
+                        <div class="inquiry-type-grid">
+
+                            <button type="button" class="inquiry-type-card @(Model.Input.Type == "radionica" ? "active" : "")"
+                                    onclick="selectType('radionica', this)">
+                                <span class="itc-eyebrow">Za kreativce</span>
+                                <span class="itc-title">Voditi radionicu</span>
+                                <span class="itc-desc">Dijelite znanje i vještinu s našom zajednicom</span>
+                            </button>
+
+                            <button type="button" class="inquiry-type-card @(Model.Input.Type == "event" ? "active" : "")"
+                                    onclick="selectType('event', this)">
+                                <span class="itc-eyebrow">Privatni event</span>
+                                <span class="itc-title">Posebna prigoda</span>
+                                <span class="itc-desc">Rođendan, team building ili privatna radionica</span>
+                            </button>
+
+                            <button type="button" class="inquiry-type-card @(Model.Input.Type == "marketing" ? "active" : "")"
+                                    onclick="selectType('marketing', this)">
+                                <span class="itc-eyebrow">Za brendove</span>
+                                <span class="itc-title">Brand &amp; marketing</span>
+                                <span class="itc-desc">Point-of-sale, izlaganje, event sponzorstvo</span>
+                            </button>
+
+                            <button type="button" class="inquiry-type-card @(Model.Input.Type == "ostalo" ? "active" : "")"
+                                    onclick="selectType('ostalo', this)">
+                                <span class="itc-eyebrow">Nešto drugo</span>
+                                <span class="itc-title">Ostalo</span>
+                                <span class="itc-desc">Drugi tip suradnje ili pitanje</span>
+                            </button>
+
+                        </div>
+                        @if (!ModelState.IsValid && ModelState.ContainsKey("Input.Type"))
+                        {
+                            <p style="color:#c0392b;font-size:0.8rem;margin-top:8px;">Odaberite vrstu upita.</p>
+                        }
+                    </div>
+
+                    <!-- STEP 2: fields — shown after type is picked -->
+                    <div id="inquiry-fields" style="display:@(string.IsNullOrEmpty(Model.Input.Type) ? "none" : "contents")">
+
+                        <!-- Common: name + email -->
+                        <div class="inquiry-form-row">
+                            <div class="inquiry-field">
+                                <label>Ime i prezime</label>
+                                <input type="text" name="Input.Name" value="@Model.Input.Name" required placeholder="Ana Horvat" />
+                            </div>
+                            <div class="inquiry-field">
+                                <label>E-mail</label>
+                                <input type="email" name="Input.Email" value="@Model.Input.Email" required placeholder="ana@email.com" />
+                            </div>
+                        </div>
+
+                        <!-- Radionica fields -->
+                        <div id="fields-radionica" class="type-fields" style="display:@(Model.Input.Type == "radionica" ? "contents" : "none")">
+                            <div class="inquiry-field">
+                                <label>Tema ili naziv radionice</label>
+                                <input type="text" name="Input.WorkshopTopic" value="@Model.Input.WorkshopTopic"
+                                       placeholder="npr. Osnove akvarela, Uvod u keramiku…" />
+                            </div>
+                            <div class="inquiry-field">
+                                <label>Kratko o sebi i iskustvu</label>
+                                <textarea name="Input.WorkshopBio" rows="3"
+                                          placeholder="Tko ste, čime se bavite, imate li iskustva s održavanjem radionica?">@Model.Input.WorkshopBio</textarea>
+                            </div>
+                            <div class="inquiry-form-row">
+                                <div class="inquiry-field">
+                                    <label>Preferirani termini</label>
+                                    <select name="Input.WorkshopSchedule">
+                                        <option value="">— odaberite —</option>
+                                        <option value="Radni dan (od 15h)">Radni dan (od 15h)</option>
+                                        <option value="Vikend">Vikend</option>
+                                        <option value="Fleksibilno">Fleksibilno</option>
+                                    </select>
+                                </div>
+                                <div class="inquiry-field">
+                                    <label>Okvirni broj polaznika</label>
+                                    <input type="text" name="Input.WorkshopParticipants" value="@Model.Input.WorkshopParticipants"
+                                           placeholder="npr. 8–12" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Event fields -->
+                        <div id="fields-event" class="type-fields" style="display:@(Model.Input.Type == "event" ? "contents" : "none")">
+                            <div class="inquiry-form-row">
+                                <div class="inquiry-field">
+                                    <label>Vrsta eventa</label>
+                                    <select name="Input.EventKind">
+                                        <option value="">— odaberite —</option>
+                                        <option value="Rođendan">Rođendan</option>
+                                        <option value="Team building">Team building</option>
+                                        <option value="Privatna radionica">Privatna radionica</option>
+                                        <option value="Drugo">Drugo</option>
+                                    </select>
+                                </div>
+                                <div class="inquiry-field">
+                                    <label>Željeni datum</label>
+                                    <input type="text" name="Input.EventDate" value="@Model.Input.EventDate"
+                                           placeholder="npr. lipanj 2026, vikend u srpnju…" />
+                                </div>
+                            </div>
+                            <div class="inquiry-field">
+                                <label>Broj gostiju</label>
+                                <input type="text" name="Input.EventGuests" value="@Model.Input.EventGuests"
+                                       placeholder="npr. 10–15 osoba" />
+                            </div>
+                            <div class="inquiry-field">
+                                <label>Posebne napomene <span style="opacity:0.45;font-weight:400;">(opcionalno)</span></label>
+                                <textarea name="Input.EventNotes" rows="3"
+                                          placeholder="Tema, posebni zahtjevi, pitanja…">@Model.Input.EventNotes</textarea>
+                            </div>
+                        </div>
+
+                        <!-- Marketing fields -->
+                        <div id="fields-marketing" class="type-fields" style="display:@(Model.Input.Type == "marketing" ? "contents" : "none")">
+                            <div class="inquiry-field">
+                                <label>Naziv brenda ili tvrtke</label>
+                                <input type="text" name="Input.BrandName" value="@Model.Input.BrandName"
+                                       placeholder="npr. Moj Brend d.o.o." />
+                            </div>
+                            <div class="inquiry-field">
+                                <label>Što vas zanima? <span style="opacity:0.45;font-weight:400;">(možete odabrati više)</span></label>
+                                <div class="inquiry-pill-group">
+                                    <label class="inquiry-pill"><input type="checkbox" name="Input.BrandPlacements" value="Zidni prostor" @(Model.Input.BrandPlacements?.Contains("Zidni") == true ? "checked" : "") /><span>Zidni prostor</span></label>
+                                    <label class="inquiry-pill"><input type="checkbox" name="Input.BrandPlacements" value="Police / display" @(Model.Input.BrandPlacements?.Contains("Police") == true ? "checked" : "") /><span>Police / display</span></label>
+                                    <label class="inquiry-pill"><input type="checkbox" name="Input.BrandPlacements" value="Takeaway materijali" @(Model.Input.BrandPlacements?.Contains("Takeaway") == true ? "checked" : "") /><span>Takeaway materijali</span></label>
+                                    <label class="inquiry-pill"><input type="checkbox" name="Input.BrandPlacements" value="Instagram mention" @(Model.Input.BrandPlacements?.Contains("Instagram") == true ? "checked" : "") /><span>Instagram mention</span></label>
+                                    <label class="inquiry-pill"><input type="checkbox" name="Input.BrandPlacements" value="Event sponzorstvo" @(Model.Input.BrandPlacements?.Contains("Event") == true ? "checked" : "") /><span>Event sponzorstvo</span></label>
+                                </div>
+                            </div>
+                            <div class="inquiry-field">
+                                <label>Poruka <span style="opacity:0.45;font-weight:400;">(opcionalno)</span></label>
+                                <textarea name="Input.BrandMessage" rows="3"
+                                          placeholder="Opis brenda, ideja, pitanja…">@Model.Input.BrandMessage</textarea>
+                            </div>
+                        </div>
+
+                        <!-- Other fields -->
+                        <div id="fields-ostalo" class="type-fields" style="display:@(Model.Input.Type == "ostalo" ? "contents" : "none")">
+                            <div class="inquiry-field">
+                                <label>Poruka</label>
+                                <textarea name="Input.OtherMessage" rows="5" required
+                                          placeholder="Recite nam o čemu se radi…">@Model.Input.OtherMessage</textarea>
+                            </div>
+                        </div>
+
+                        <div>
+                            <button type="submit" class="btn btn-primary">Pošalji upit</button>
+                        </div>
+
+                    </div><!-- /inquiry-fields -->
+                </form>
+            }
         </div>
     </section>
 
 </div>
+
+<script>
+function selectType(value, el) {
+    document.querySelectorAll('.inquiry-type-card').forEach(function(c) { c.classList.remove('active'); });
+    el.classList.add('active');
+    document.getElementById('inquiry-type-val').value = value;
+    document.getElementById('inquiry-fields').style.display = 'contents';
+    document.querySelectorAll('.type-fields').forEach(function(f) { f.style.display = 'none'; });
+    var target = document.getElementById('fields-' + value);
+    if (target) target.style.display = 'contents';
+}
+
+function preselectType(value) {
+    var card = document.querySelector('.inquiry-type-card[onclick*="' + value + '"]');
+    if (card) selectType(value, card);
+}
+
+// On page load, if type is already set (e.g. validation error returned), show fields
+(function() {
+    var val = document.getElementById('inquiry-type-val').value;
+    if (val) {
+        var card = document.querySelector('.inquiry-type-card[onclick*="' + val + '"]');
+        if (card) card.classList.add('active');
+        document.getElementById('inquiry-fields').style.display = 'contents';
+        var target = document.getElementById('fields-' + val);
+        if (target) target.style.display = 'contents';
+    }
+})();
+</script>
