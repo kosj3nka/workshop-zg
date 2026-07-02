@@ -150,9 +150,14 @@ public class WorkshopEditModel : PageModel
             // Save additional photos
             await SavePhotosAsync(workshop.Id);
 
-            // Notify all active subscribers about the new workshop
-            var newSubs = await ActiveSubscribersAsync();
-            _ = _email.SendWorkshopAnnouncementAsync(workshop, newSubs);
+            if (Input.NotifySubscribers)
+            {
+                var subject = string.IsNullOrWhiteSpace(Input.EmailSubject)
+                    ? $"Nova radionica! - {workshop.Name}"
+                    : Input.EmailSubject;
+                var newSubs = await ActiveSubscribersAsync();
+                _ = _email.SendWorkshopAnnouncementAsync(workshop, newSubs, subject);
+            }
         }
         else
         {
@@ -288,4 +293,6 @@ public class WorkshopInputModel
     public string? HostWebsite { get; set; }
     public string? ExistingLogoUrl   { get; set; }
     public string? ExistingBannerUrl { get; set; }
+    public bool NotifySubscribers { get; set; }
+    public string EmailSubject { get; set; } = "";
 }

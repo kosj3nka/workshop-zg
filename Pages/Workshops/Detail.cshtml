@@ -1,8 +1,61 @@
 @page "/workshops/{slug}"
 @model WorkshopZagreb.Pages.Workshops.WorkshopDetailModel
+@using System.Text.Json
 @{
     ViewData["Title"] = Model.Workshop?.Name ?? "Workshop";
     ViewData["Description"] = Model.Workshop?.Description;
+    ViewData["OgImage"] = Model.Workshop?.BannerUrl;
+    ViewData["OgType"] = "event";
+}
+
+@if (Model.Workshop != null)
+{
+    var _w = Model.Workshop;
+    var _startDt = _w.Date.Date + _w.StartTime;
+    var _endDt   = _w.Date.Date + (_w.EndTime ?? _w.StartTime.Add(TimeSpan.FromHours(2)));
+    // Croatia is UTC+2 in summer (Apr–Oct), UTC+1 in winter
+    var _tz   = (_w.Date.Month >= 4 && _w.Date.Month <= 10) ? "+02:00" : "+01:00";
+    var _start = _startDt.ToString("yyyy-MM-ddTHH:mm:ss") + _tz;
+    var _end   = _endDt.ToString("yyyy-MM-ddTHH:mm:ss") + _tz;
+    string J(string? s) => JsonSerializer.Serialize(s ?? "");
+
+    <script type="application/ld+json">
+    {
+      "@@context": "https://schema.org",
+      "@@type": "Event",
+      "name": @Html.Raw(J(_w.Name)),
+      "description": @Html.Raw(J(_w.Description)),
+      "image": @Html.Raw(J(_w.BannerUrl)),
+      "startDate": "@_start",
+      "endDate": "@_end",
+      "eventStatus": "https://schema.org/EventScheduled",
+      "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+      "location": {
+        "@@type": "Place",
+        "name": "Workshop Zagreb",
+        "address": {
+          "@@type": "PostalAddress",
+          "streetAddress": "Henrika Degena 2",
+          "addressLocality": "Zagreb",
+          "addressRegion": "Grad Zagreb",
+          "postalCode": "10000",
+          "addressCountry": "HR"
+        }
+      },
+      "organizer": {
+        "@@type": "Organization",
+        "name": "Workshop Zagreb",
+        "url": "https://workshopzagreb.com"
+      }@((_w.Price.HasValue && !string.IsNullOrEmpty(_w.EntrioUrl)) ? Html.Raw($@",
+      ""offers"": {{
+        ""@@type"": ""Offer"",
+        ""price"": ""{_w.Price:0}"",
+        ""priceCurrency"": ""EUR"",
+        ""availability"": ""https://schema.org/InStock"",
+        ""url"": {J(_w.EntrioUrl)}
+      }}") : Html.Raw(""))
+    }
+    </script>
 }
 
 @if (Model.Workshop == null)

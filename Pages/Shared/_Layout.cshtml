@@ -1,10 +1,41 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hr">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] – Workshop Zagreb</title>
-    <meta name="description" content="@(ViewData["Description"] ?? "Morning coffee, afternoon creativity. Workshops in the heart of Zagreb.")">
+    @{
+        var _isHome = ViewData["IsHome"] as bool? == true;
+        var _pageTitle = ViewData["Title"]?.ToString() ?? "";
+        var _fullTitle = _isHome
+            ? "Workshop Zagreb — Kreativne radionice u Zagrebu"
+            : (_pageTitle + " – Workshop Zagreb");
+        var _desc = ViewData["Description"] as string
+            ?? "Jutarnja kava, poslijepodnevna kreativnost. Kreativne radionice u srcu Zagreba — akvarel, keramika, fotografija i više.";
+        var _baseUrl = $"{Context.Request.Scheme}://{Context.Request.Host}";
+        var _ogUrl   = _baseUrl + Context.Request.Path;
+        var _ogImgRaw = ViewData["OgImage"] as string ?? "/images/lokacija.jpg";
+        var _ogImage  = _ogImgRaw.StartsWith("http") ? _ogImgRaw : _baseUrl + _ogImgRaw;
+        var _ogType   = ViewData["OgType"] as string ?? "website";
+    }
+    <title>@_fullTitle</title>
+    <meta name="description" content="@_desc" />
+    <link rel="canonical" href="@_ogUrl" />
+
+    <!-- Open Graph -->
+    <meta property="og:title"       content="@_fullTitle" />
+    <meta property="og:description" content="@_desc" />
+    <meta property="og:image"       content="@_ogImage" />
+    <meta property="og:url"         content="@_ogUrl" />
+    <meta property="og:type"        content="@_ogType" />
+    <meta property="og:site_name"   content="Workshop Zagreb" />
+    <meta property="og:locale"      content="hr_HR" />
+
+    <!-- Twitter / X Card -->
+    <meta name="twitter:card"        content="summary_large_image" />
+    <meta name="twitter:title"       content="@_fullTitle" />
+    <meta name="twitter:description" content="@_desc" />
+    <meta name="twitter:image"       content="@_ogImage" />
+
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
@@ -81,9 +112,9 @@
          style="display:none">
         <div class="popup-card" @@click.stop>
             <button class="popup-close" @@click="dismiss()">✕</button>
-            <p class="popup-eyebrow">Stay in the loop</p>
-            <h2 class="popup-title">Workshops, news &amp; a little inspiration.</h2>
-            <p class="popup-sub">Once a month. No spam.</p>
+            <p class="popup-eyebrow">Newsletter</p>
+            <h2 class="popup-title">Budite prvi kada stignu nove radionice.</h2>
+            <p class="popup-sub">Obavijest čim otvorimo novu radionicu. Jednom ili dvaput mjesečno. Bez spama.</p>
             <form class="popup-form" @@submit.prevent="subscribe($event)">
                 <input type="email" name="email" placeholder="your@email.com" required class="popup-input" />
                 <button type="submit" class="btn btn-primary" x-text="submitted ? 'Check your inbox ✓' : 'Subscribe'"></button>
@@ -96,7 +127,15 @@
         function newsletterPopup() {
             return {
                 show: false, submitted: false,
-                init() { if (!localStorage.getItem('newsletter_dismissed')) setTimeout(() => this.show = true, 3000); },
+                init() {
+                    if (localStorage.getItem('newsletter_dismissed')) return;
+                    const target = document.querySelector('.workshops-section');
+                    if (!target) return;
+                    const obs = new IntersectionObserver((entries) => {
+                        if (entries[0].isIntersecting) { this.show = true; obs.disconnect(); }
+                    }, { threshold: 0.25 });
+                    obs.observe(target);
+                },
                 dismiss() { this.show = false; localStorage.setItem('newsletter_dismissed', '1'); },
                 async subscribe(e) {
                     const email = e.target.querySelector('input[type=email]').value;

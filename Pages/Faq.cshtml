@@ -1,6 +1,9 @@
 @page
 @model WorkshopZagreb.Pages.FaqModel
-@{ ViewData["Title"] = "FAQ"; }
+@{
+    ViewData["Title"] = "FAQ";
+    ViewData["Description"] = "Odgovori na najčešća pitanja o radionicama u Workshop Zagrebu — ulaznice, cijene, materijali, povrati i više.";
+}
 
 <div class="static-page">
     <div class="static-page-header">
@@ -26,16 +29,30 @@
                 ("Mogu li dobiti povrat novca ako ne mogu doći?",
                  "Povrat je moguć do 48 sati prije radionice. Nakon toga nažalost nije moguće jer smo već naručili materijal. Možete prebaciti ulaznicu na drugu osobu."),
 
-                ("Koliko traje radionica?",
-                 "Obično 2–3 sata, ovisno o vrsti radionice. Točno trajanje piše u opisu svake radionice."),
-
-                ("Ima li parking u blizini?",
-                 "Da, postoji plaćeni parking 100m od nas. Za javni prijevoz: tramvaj broj 6 i 11 staju odmah ispred."),
+                
 
                 ("Mogu li organizirati privatnu radionicu za grupu?",
-                 "Apsolutno! Javite nam se na Instagram i dogovorimo detalje. Radimo privatne radionice za ekipe, birthdayje, team buildinge i slično.")
+                 "Apsolutno! Pošaljite upit na Collaborate stranici ili nam se javite na Instagram i dogovorimo detalje. Radimo privatne radionice za ekipe, rođendane, team buildinge i jednom smo čak imali i vjenčanje ;)"),
+
+                ("Što sve nudi Workshop Zagreb?",
+                 "Workshop Zagreb je kreativni hibridni kafić na Henriku Degenu 2 u Zagrebu, uz Ribnjak park. Ujutro specialty kava i zalogaji — poslijepodne tjedne kreativne radionice (akvarel, keramika, fotografija, printmaking i više), otvorene za početnike. Prostor je dostupan i za privatne evente: proslave rođendana, team buildinge, djevojačke večeri i privatne radionice za grupe do 15 osoba. Neovisni kreativci i stručnjaci mogu ga zakupiti za vlastite radionice. Sve upite šaljite putem stranice Suradnja.")
             };
         }
+
+        @{
+            var faqJson = new System.Text.StringBuilder();
+            faqJson.Append("[");
+            for (int fi = 0; fi < faqs.Length; fi++)
+            {
+                if (fi > 0) faqJson.Append(",");
+                var (q, a) = faqs[fi];
+                faqJson.Append($"{{\"@@type\":\"Question\",\"name\":{System.Text.Json.JsonSerializer.Serialize(q)},\"acceptedAnswer\":{{\"@@type\":\"Answer\",\"text\":{System.Text.Json.JsonSerializer.Serialize(a)}}}}}");
+            }
+            faqJson.Append("]");
+        }
+        <script type="application/ld+json">
+        {"@@context":"https://schema.org","@@type":"FAQPage","mainEntity":@Html.Raw(faqJson.ToString())}
+        </script>
 
         @for (int i = 0; i < faqs.Length; i++)
         {

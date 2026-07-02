@@ -211,6 +211,45 @@
         <p class="form-hint">Shown in a photo grid on the workshop detail page. Select multiple (Ctrl+click or Shift+click).</p>
     </div>
 
+    @if (isNew)
+    {
+        <!-- ===== NOTIFY SUBSCRIBERS ===== -->
+        <p class="form-section-title">Obavijesti pretplatnike</p>
+
+        <div class="form-group">
+            <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+                <input type="hidden" name="Input.NotifySubscribers" value="false" />
+                <input type="checkbox" id="chk-notify" name="Input.NotifySubscribers" value="true"
+                       style="width:16px;height:16px;" onchange="toggleNotify(this.checked)" />
+                <span class="form-label" style="margin:0;">Pošalji email svim pretplatnicima</span>
+            </label>
+        </div>
+
+        <div id="notify-fields" style="display:none">
+            <div class="form-group">
+                <label class="form-label">Naslov emaila</label>
+                <input type="text" id="email-subject" name="Input.EmailSubject"
+                       class="form-control" placeholder="npr. Nova radionica! - Akvarel za početnike" />
+                <p class="form-hint">Automatski popunjen — možeš promijeniti.</p>
+            </div>
+        </div>
+
+        <script>
+        function toggleNotify(on) {
+            document.getElementById('notify-fields').style.display = on ? '' : 'none';
+        }
+        document.addEventListener('DOMContentLoaded', function () {
+            var nameInput = document.querySelector('input[name="Input.Name"]');
+            var subjectInput = document.getElementById('email-subject');
+            if (nameInput && subjectInput) {
+                nameInput.addEventListener('input', function () {
+                    subjectInput.value = 'Nova radionica! - ' + this.value;
+                });
+            }
+        });
+        </script>
+    }
+
     <div class="form-actions">
         <button type="submit" class="btn btn-primary">
             @(isNew ? "Objavi radionicu" : "Spremi promjene")

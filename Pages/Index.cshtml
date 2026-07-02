@@ -1,7 +1,9 @@
 @page
 @model IndexModel
 @{
+    ViewData["IsHome"] = true;
     ViewData["Title"] = "Home";
+    ViewData["Description"] = "Jutarnja kava, poslijepodnevna kreativnost. Svaki tjedan nova radionica u srcu Zagreba — akvarel, keramika, fotografija i više.";
     Layout = "_Layout";
 }
 
@@ -27,7 +29,7 @@
 <!-- ============= CTA ============= -->
 <section class="cta-section" id="discover">
     <h2>Find Your Workshop</h2>
-    <p>From watercolour to ceramics — a new opportunity each week to make something with your hands, over good coffee.</p>
+    <p>From sushi and flower making to runner clubs — a new opportunity each week to make something with your hands or meet new people, over good coffee.</p>
     <div class="cta-buttons">
         <a href="/workshops" class="btn btn-primary">Book a Workshop</a>
         <a href="/about#find-us" class="btn btn-outline">How to Find Us</a>
@@ -246,6 +248,37 @@
     </div><!-- /calendar-wrapper -->
 </section>
 
+<!-- ============= NEWSLETTER ============= -->
+<section class="home-newsletter">
+    <div class="home-newsletter-inner">
+        <div class="home-newsletter-text">
+            <p class="mood-eyebrow">Newsletter</p>
+            <h2>Budite prvi kada stignu nove radionice.</h2>
+            <p>Obavijest čim otvorimo novu radionicu, tako da ste uvijek informirai o novim događajima.</p>
+        </div>
+        <form class="home-newsletter-form"
+              x-data="{ email:'', submitted:false, error:'' }"
+              x-on:submit.prevent="
+                fetch('/api/subscribe', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email }) })
+                  .then(r => r.json())
+                  .then(d => { if (d.ok) { submitted = true; localStorage.setItem('newsletter_dismissed','1'); } else { error = d.message || 'Greška.'; } })
+                  .catch(() => { error = 'Greška. Pokušajte ponovo.'; })
+              ">
+            <template x-if="submitted">
+                <p class="home-newsletter-thanks">Hvala! Provjerite inbox.</p>
+            </template>
+            <template x-if="!submitted">
+                <div class="home-newsletter-row">
+                    <input type="email" x-model="email" placeholder="vaš@email.com" required class="home-newsletter-input" />
+                    <button type="submit" class="btn btn-primary">Prijavi se</button>
+                </div>
+            </template>
+            <p x-show="error" x-text="error" style="color:#c0392b;font-size:0.8rem;margin-top:8px;"></p>
+            <p class="home-newsletter-gdpr">Prijavom prihvaćate našu <a href="/privacy">politiku privatnosti</a>.</p>
+        </form>
+    </div>
+</section>
+
 <!-- ============= MOOD SPLIT ============= -->
 <section class="mood-split">
     <div class="mood-split-img">
@@ -279,37 +312,6 @@
             <img src="/images/DJ.jpg" alt="Evening event" />
             <div class="quad-overlay"><span>Events</span></div>
         </div>
-    </div>
-</section>
-
-<!-- ============= NEWSLETTER ============= -->
-<section class="home-newsletter">
-    <div class="home-newsletter-inner">
-        <div class="home-newsletter-text">
-            <p class="mood-eyebrow">Newsletter</p>
-            <h2>Budite prvi koji znaju.</h2>
-            <p>Nova radionica, poseban event, vijest iz kafića — jednom ili dvaput mjesečno. Bez spama.</p>
-        </div>
-        <form class="home-newsletter-form"
-              x-data="{ email:'', submitted:false, error:'' }"
-              x-on:submit.prevent="
-                fetch('/api/subscribe', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email }) })
-                  .then(r => r.json())
-                  .then(d => { if (d.ok) { submitted = true; localStorage.setItem('newsletter_dismissed','1'); } else { error = d.message || 'Greška.'; } })
-                  .catch(() => { error = 'Greška. Pokušajte ponovo.'; })
-              ">
-            <template x-if="submitted">
-                <p class="home-newsletter-thanks">Hvala! Provjerite inbox.</p>
-            </template>
-            <template x-if="!submitted">
-                <div class="home-newsletter-row">
-                    <input type="email" x-model="email" placeholder="vaš@email.com" required class="home-newsletter-input" />
-                    <button type="submit" class="btn btn-primary">Prijavi se</button>
-                </div>
-            </template>
-            <p x-show="error" x-text="error" style="color:#c0392b;font-size:0.8rem;margin-top:8px;"></p>
-            <p class="home-newsletter-gdpr">Prijavom prihvaćate našu <a href="/privacy">politiku privatnosti</a>.</p>
-        </form>
     </div>
 </section>
 

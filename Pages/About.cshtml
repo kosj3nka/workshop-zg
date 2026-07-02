@@ -1,6 +1,32 @@
 @page
 @model WorkshopZagreb.Pages.AboutModel
-@{ ViewData["Title"] = "About"; }
+@{
+    ViewData["Title"] = "O nama";
+    ViewData["Description"] = "Upoznajte priču iza Workshop Zagreba — kreativni prostor u srcu Zagreba koji spaja jutarnju kavu s poslijepodnevnim radionicama. Henrika Degena 2, Zagreb.";
+    ViewData["OgImage"] = "/images/table.webp";
+}
+
+<script type="application/ld+json">
+{
+  "@@context": "https://schema.org",
+  "@@type": ["CafeOrCoffeeShop", "EventVenue"],
+  "name": "Workshop Zagreb",
+  "description": "Kreativni prostor u srcu Zagreba — jutarnja kava, poslijepodnevne radionice.",
+  "url": "https://workshopzagreb.com",
+  "image": "https://workshopzagreb.com/images/table.webp",
+  "address": {
+    "@@type": "PostalAddress",
+    "streetAddress": "Henrika Degena 2",
+    "addressLocality": "Zagreb",
+    "addressRegion": "Grad Zagreb",
+    "postalCode": "10000",
+    "addressCountry": "HR"
+  },
+  "sameAs": [
+    "https://www.instagram.com/workshop.zagreb/"
+  ]
+}
+</script>
 
 <div class="about-page">
 
@@ -61,12 +87,13 @@
                 </div>
                 <h3>Morning — coffee</h3>
                 <p>
-                    From 8 am to 3 pm, Workshop operates as a specialty coffee place. Espresso, filter coffee, cold brew, matcha, fresh juices — and even craft beer and Espresso Martini.
+                    From 8 am to 3 pm, Workshop operates as a specialty coffee place. Espresso, filter coffee, cold brew, matcha, fresh juices,— and even craft beer and Espresso Martini.
                 </p>
                 <p>
                     Coffee knowledge comes from <strong>Vedran at Broom</strong>, one of Croatia's leading specialty baristas. Workshop is one of the few places that isn't strictly a coffee shop but puts an exceptional focus on coffee.
                 </p>
             </div>
+            <br />  
             <div class="about-concept-card">
                 <div class="concept-icon">
                     <!-- paintbrush / creativity -->
@@ -74,7 +101,7 @@
                 </div>
                 <h3>Afternoon — creativity</h3>
                 <p>
-                    Every day after 3 pm, the space transforms into a zone for workshops, conversations, and panels. Experts and professionals from many fields — cooking, architecture, painting, floristry, and much more.
+                    Every day after 3 pm, the space transforms into a zone for workshops, conversations, and panels. Experts and professionals from many fields; cooking, architecture, painting, floristry, and much more.
                 </p>
                 <p>
                     The idea was never for Workshop to be an all-day coffee place, but for coffee and creativity to coexist — each in its own time of day.
@@ -120,7 +147,7 @@
                 <div class="about-info-details">
                     <div class="info-row">
                         <div>
-                            <strong>Henrika Degena 2, Zagreb</strong>
+                            <strong>ulica Henrika Degena 2, Zagreb</strong>
                             <p>Opposite Ribnjak park</p>
                         </div>
                     </div>
@@ -131,7 +158,7 @@
                         </div>
                     </div>
                     <div class="info-row">
-                        <div>Tramvaji 8, 14 i 15 — manje od 10 min hoda od Trga bana Jelačića</div>
+                        <div>Tramvaji 8, 14 i 15 <br/> Manje od 10 min hoda od Trga bana Jelačića</div>
                     </div>
                     <div class="info-row">
                         <div>Paid parking 100m away, Jurjevska street</div>

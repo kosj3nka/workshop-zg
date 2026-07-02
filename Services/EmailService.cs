@@ -9,7 +9,7 @@ namespace WorkshopZagreb.Services;
 public interface IEmailService
 {
     Task SendConfirmationAsync(string toEmail, string unsubscribeToken);
-    Task SendWorkshopAnnouncementAsync(Workshop workshop, IList<Subscriber> subscribers);
+    Task SendWorkshopAnnouncementAsync(Workshop workshop, IList<Subscriber> subscribers, string? subject = null);
     Task SendInquiryAsync(InquiryInput input);
 }
 
@@ -52,7 +52,7 @@ public class EmailService : IEmailService
         await SendOneAsync(toEmail, "Dobrodošli u Workshop Zagreb newsletter!", html);
     }
 
-    public async Task SendWorkshopAnnouncementAsync(Workshop workshop, IList<Subscriber> subscribers)
+    public async Task SendWorkshopAnnouncementAsync(Workshop workshop, IList<Subscriber> subscribers, string? subject = null)
     {
         if (!subscribers.Any()) return;
 
@@ -70,7 +70,7 @@ public class EmailService : IEmailService
             ? $"""<p style="margin:28px 0 8px;"><a href="{workshop.EntrioUrl}" style="background:#c8a96e;color:#fff;padding:12px 32px;text-decoration:none;display:inline-block;font-size:0.9rem;font-weight:600;">Kupi ulaznicu</a></p>"""
             : "";
         var calendarUrl = $"{SiteBase()}/#calendar";
-        var subject = $"Nova radionica: {workshop.Name} — Workshop Zagreb";
+        subject ??= $"Nova radionica: {workshop.Name} — Workshop Zagreb";
 
         foreach (var sub in subscribers)
         {

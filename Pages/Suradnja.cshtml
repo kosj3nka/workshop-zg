@@ -1,6 +1,9 @@
 @page
 @model WorkshopZagreb.Pages.SuradnjaModel
-@{ ViewData["Title"] = "Suradnja"; }
+@{
+    ViewData["Title"] = "Suradnja";
+    ViewData["Description"] = "Zakupite prostor Workshop Zagreba za vlastitu radionicu, privatni event, team building ili brand aktivaciju. Pošaljite upit i dogovorimo detalje.";
+}
 
 <div class="suradnja-page">
 
@@ -29,16 +32,43 @@
                     Naš prostor poslijepodne postaje vaš. Mi osiguravamo atmosferu, kavu i publiku — vi donosite znanje i energiju.
                 </p>
                 <h3 style="margin:28px 0 12px; font-size:1.1rem;">Što nudimo:</h3>
-                <ul class="suradnja-list">
-                    <li>Opremljen prostor za do 15 polaznika</li>
-                    <li>Pomoć pri promociji na našim kanalima</li>
-                    <li>Logistiku prijava i plaćanja (Entrio)</li>
-                    <li>Kavu dobrodošlice za polaznike</li>
-                    <li>Fleksibilne termine (radnim danima od 15h, vikendima po dogovoru)</li>
-                </ul>
+                
                 <a href="#upit" onclick="preselectType('radionica')"
                    class="btn btn-primary" style="margin-top:28px;">
                     Pošaljite upit →
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- DIVIDER -->
+    <div class="suradnja-divider container-narrow"></div>
+
+    <!-- PRIVATNI EVENTI / BIRTHDAY / TEAM BUILDING -->
+    <section class="suradnja-section container-narrow">
+        <div class="suradnja-grid suradnja-grid--reverse">
+            <div class="suradnja-img">
+                <img src="/images/brunch.jpg" alt="Privatni event i proslava u Workshop Zagrebu" />
+            </div>
+            <div class="suradnja-text">
+                <p class="about-eyebrow">Rođendani · Team building · Privatne radionice</p>
+                <h2>Zakupite prostor za posebnu prigodu</h2>
+                <p>
+                    Tražite drugačije mjesto za proslavu rođendana, team building ili privatnu radionicu u Zagrebu? Workshop Zagreb možete rezervirati za vašu grupu — kombinirajte kreativni sadržaj s toplom kafičkom atmosferom.
+                </p>
+                <p>
+                    Odaberite temu radionice (akvarel, keramika, printmaking…) ili nam recite što volite — mi osiguravamo voditelja, materijale i prostor. Vi dovedete ljude.
+                </p>
+                <h3 style="margin:28px 0 12px; font-size:1.1rem;">Idealno za:</h3>
+                <ul class="suradnja-list">
+                    <li>Proslave rođendana za grupe do 15 osoba</li>
+                    <li>Team building i korporativne evente</li>
+                    <li>Djevojačke večeri, godišnjice, susrete prijatelja</li>
+                    <li>Privatne radionice po narudžbi (tema po vašem izboru)</li>
+                </ul>
+                <a href="#upit" onclick="preselectType('event')"
+                   class="btn btn-primary" style="margin-top:28px;">
+                    Rezervirajte termin →
                 </a>
             </div>
         </div>
