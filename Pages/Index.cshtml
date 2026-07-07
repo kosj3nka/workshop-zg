@@ -261,7 +261,7 @@
               x-on:submit.prevent="
                 fetch('/api/subscribe', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email }) })
                   .then(r => r.json())
-                  .then(d => { if (d.ok) { submitted = true; localStorage.setItem('newsletter_dismissed','1'); } else { error = d.message || 'Greška.'; } })
+                  .then(d => { if (d.ok) { submitted = true; localStorage.setItem('newsletter_subscribed','1'); } else { error = d.message || 'Greška.'; } })
                   .catch(() => { error = 'Greška. Pokušajte ponovo.'; })
               ">
             <template x-if="submitted">

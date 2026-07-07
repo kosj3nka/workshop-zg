@@ -128,20 +128,23 @@
             return {
                 show: false, submitted: false,
                 init() {
-                    if (localStorage.getItem('newsletter_dismissed')) return;
-                    const target = document.querySelector('.workshops-section');
-                    if (!target) return;
-                    const obs = new IntersectionObserver((entries) => {
-                        if (entries[0].isIntersecting) { this.show = true; obs.disconnect(); }
-                    }, { threshold: 0.25 });
-                    obs.observe(target);
+                    // Signed up already — never show again, on any future visit.
+                    if (localStorage.getItem('newsletter_subscribed')) return;
+                    // Already shown once this browsing session — don't re-show on every page nav.
+                    if (sessionStorage.getItem('newsletter_shown_session')) return;
+                    setTimeout(() => {
+                        this.show = true;
+                        sessionStorage.setItem('newsletter_shown_session', '1');
+                    }, 7000);
                 },
-                dismiss() { this.show = false; localStorage.setItem('newsletter_dismissed', '1'); },
+                // Closing the popup just hides it for now — no permanent flag,
+                // so it shows again on a future visit if they never signed up.
+                dismiss() { this.show = false; },
                 async subscribe(e) {
                     const email = e.target.querySelector('input[type=email]').value;
                     await fetch('/api/subscribe', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email }) });
                     this.submitted = true;
-                    localStorage.setItem('newsletter_dismissed', '1');
+                    localStorage.setItem('newsletter_subscribed', '1');
                     setTimeout(() => this.show = false, 2500);
                 }
             }

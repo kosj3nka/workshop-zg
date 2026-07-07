@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "workshopzagreb-dev",
+      "runtimeExecutable": "dotnet",
+      "runtimeArgs": ["run", "--urls", "http://localhost:5251"],
+      "port": 5251
+    }
+  ]
+}
