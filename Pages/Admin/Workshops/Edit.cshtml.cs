@@ -39,7 +39,6 @@ public class WorkshopEditModel : PageModel
     public List<WorkshopOccurrence> Occurrences { get; set; } = new();
     public bool IsNew { get; set; }
     public bool IsArchivedWorkshop { get; set; }
-    public string? StatusMessage { get; set; }
 
     private IActionResult? CheckAuth()
     {
@@ -212,6 +211,9 @@ public class WorkshopEditModel : PageModel
     {
         var auth = CheckAuth(); if (auth != null) return auth;
 
+        if (NewOccurrence.Date == default)
+            return RedirectToPage(new { action = "edit", id = workshopId });
+
         _db.WorkshopOccurrences.Add(new WorkshopOccurrence
         {
             WorkshopId = workshopId,
@@ -229,7 +231,10 @@ public class WorkshopEditModel : PageModel
     {
         var auth = CheckAuth(); if (auth != null) return auth;
 
-        var occurrence = await _db.WorkshopOccurrences.FindAsync(occurrenceId);
+        if (occDate == default)
+            return RedirectToPage(new { action = "edit", id = workshopId });
+
+        var occurrence = await _db.WorkshopOccurrences.FirstOrDefaultAsync(o => o.Id == occurrenceId && o.WorkshopId == workshopId);
         if (occurrence != null)
         {
             occurrence.Date = occDate;
@@ -246,7 +251,7 @@ public class WorkshopEditModel : PageModel
     {
         var auth = CheckAuth(); if (auth != null) return auth;
 
-        var occurrence = await _db.WorkshopOccurrences.FindAsync(occurrenceId);
+        var occurrence = await _db.WorkshopOccurrences.FirstOrDefaultAsync(o => o.Id == occurrenceId && o.WorkshopId == workshopId);
         if (occurrence != null)
         {
             _db.WorkshopOccurrences.Remove(occurrence);
