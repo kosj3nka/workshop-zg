@@ -27,10 +27,24 @@ public class SitemapModel : PageModel
             ("/gallery",   "0.6", "monthly"),
         };
 
-        var workshops = await _db.Workshops
-            .Where(w => !w.IsArchived && !w.IsPinned && w.Date >= DateTime.Today)
-            .Select(w => new { w.Slug, w.Date })
+        var allWorkshops = await _db.Workshops
+            .Include(w => w.Occurrences)
+            .Where(w => !w.IsArchived)
             .ToListAsync();
+
+        // Reservable workshops have no dates but still have their own page — list
+        // them with today's date. Regular workshops only get listed while they
+        // still have at least one upcoming occurrence.
+        var workshops = allWorkshops
+            .Where(w => w.IsReservable || w.Occurrences.Any(o => o.Date >= DateTime.Today))
+            .Select(w => new
+            {
+                w.Slug,
+                Date = w.IsReservable
+                    ? DateTime.Today
+                    : w.Occurrences.Where(o => o.Date >= DateTime.Today).Min(o => o.Date)
+            })
+            .ToList();
 
         var sb = new StringBuilder();
         sb.AppendLine("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
