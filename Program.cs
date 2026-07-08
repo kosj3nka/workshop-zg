@@ -78,25 +78,25 @@ using (var scope = app.Services.CreateScope())
             Label TEXT
         )");
 
+    // IsArchived column added June 2026 — ALTER TABLE is a no-op if it already exists
     try { db.Database.ExecuteSqlRaw("ALTER TABLE Workshops ADD COLUMN IsArchived INTEGER NOT NULL DEFAULT 0"); }
     catch { /* column already present — safe to ignore */ }
 
+    // IsPinned column added June 2026 — pinned workshops appear at the top with no date
+    // (legacy: superseded by IsReservable below, kept only as the historical source for the backfill)
     try { db.Database.ExecuteSqlRaw("ALTER TABLE Workshops ADD COLUMN IsPinned INTEGER NOT NULL DEFAULT 0"); }
     catch { /* column already present — safe to ignore */ }
 
+    // IsReservable column added July 2026 — replaces IsPinned; marks a workshop as always-bookable
+    // (not tied to specific dated occurrences) rather than "pinned to the top of the list"
     try { db.Database.ExecuteSqlRaw("ALTER TABLE Workshops ADD COLUMN IsReservable INTEGER NOT NULL DEFAULT 0"); }
     catch { /* column already present — safe to ignore */ }
+    // BookingType column added July 2026 — how a reservable workshop is booked (e.g. 'webpage' link)
     try { db.Database.ExecuteSqlRaw("ALTER TABLE Workshops ADD COLUMN BookingType TEXT"); }
     catch { /* column already present — safe to ignore */ }
+    // BookingValue column added July 2026 — the URL/value paired with BookingType
     try { db.Database.ExecuteSqlRaw("ALTER TABLE Workshops ADD COLUMN BookingValue TEXT"); }
     catch { /* column already present — safe to ignore */ }
-
-    db.Database.ExecuteSqlRaw("UPDATE Workshops SET IsReservable = IsPinned");
-
-    db.Database.ExecuteSqlRaw(@"
-        UPDATE Workshops
-        SET BookingType = 'webpage', BookingValue = '/suradnja#upit'
-        WHERE IsReservable = 1 AND BookingType IS NULL");
 
     db.Database.ExecuteSqlRaw(@"
         CREATE TABLE IF NOT EXISTS WorkshopOccurrences (
@@ -120,15 +120,43 @@ using (var scope = app.Services.CreateScope())
             Value INTEGER NOT NULL DEFAULT 1
         )");
 
+    // One-time-only: seed IsReservable from the legacy IsPinned column. Guarded via SeedFlags
+    // (rather than running unconditionally on every startup) so that once an admin changes a
+    // workshop's IsReservable flag through the app, the next deploy/restart does not silently
+    // stomp it back to the stale IsPinned value — that would recreate the exact "state reset
+    // on redeploy" bug this whole migration exists to fix.
+    var isReservableBackfillInserted = db.Database.ExecuteSqlRaw(
+        "INSERT OR IGNORE INTO SeedFlags (Key, Value) VALUES ('IsReservableBackfilled', 1)");
+    if (isReservableBackfillInserted > 0)
+    {
+        db.Database.ExecuteSqlRaw("UPDATE Workshops SET IsReservable = IsPinned");
+    }
+
+    db.Database.ExecuteSqlRaw(@"
+        UPDATE Workshops
+        SET BookingType = 'webpage', BookingValue = '/suradnja#upit'
+        WHERE IsReservable = 1 AND BookingType IS NULL");
+
     var occurrencesBackfillInserted = db.Database.ExecuteSqlRaw(
         "INSERT OR IGNORE INTO SeedFlags (Key, Value) VALUES ('OccurrencesBackfilled', 1)");
     if (occurrencesBackfillInserted > 0)
     {
-        db.Database.ExecuteSqlRaw(@"
-            INSERT INTO WorkshopOccurrences (WorkshopId, Date, StartTime, EndTime, EntrioUrl, CreatedAt)
-            SELECT Id, Date, StartTime, EndTime, EntrioUrl, CreatedAt
-            FROM Workshops
-            WHERE IsPinned = 0");
+        try
+        {
+            // Legacy Date/StartTime/EndTime/EntrioUrl columns only exist on a database that
+            // was created before Task 1's model split (they've been removed from the current
+            // Workshop C# model, so EnsureCreated() never adds them to a brand-new database).
+            // On a fresh database this throws "no such column" — which is fine, since a fresh
+            // database has no legacy per-workshop dates to backfill into occurrences anyway.
+            db.Database.ExecuteSqlRaw(@"
+                INSERT INTO WorkshopOccurrences (WorkshopId, Date, StartTime, EndTime, EntrioUrl, CreatedAt)
+                SELECT Id, Date, StartTime, EndTime, EntrioUrl, CreatedAt
+                FROM Workshops
+                -- Pinned/reservable workshops are excluded: their legacy Date/StartTime were
+                -- meaningless sentinel values (e.g. 2099-01-01), not real occurrence dates.
+                WHERE IsPinned = 0");
+        }
+        catch { /* legacy columns don't exist on a fresh database — nothing to backfill */ }
     }
 
     var reservableSeedInserted = db.Database.ExecuteSqlRaw(
