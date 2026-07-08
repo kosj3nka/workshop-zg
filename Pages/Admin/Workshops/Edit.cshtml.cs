@@ -20,11 +20,6 @@ public class WorkshopEditModel : PageModel
         _email = email;
     }
 
-    // -------------------------------------------------------
-    // InputModel: holds all form field values.
-    // [BindProperty] means ASP.NET automatically fills this
-    // from the POST form data — no manual parsing needed.
-    // -------------------------------------------------------
     [BindProperty]
     public WorkshopInputModel Input { get; set; } = new();
 
@@ -37,7 +32,11 @@ public class WorkshopEditModel : PageModel
     [BindProperty]
     public List<IFormFile> PhotoFiles { get; set; } = new();
 
+    [BindProperty]
+    public OccurrenceInputModel NewOccurrence { get; set; } = new();
+
     public List<WorkshopPhoto> ExistingPhotos { get; set; } = new();
+    public List<WorkshopOccurrence> Occurrences { get; set; } = new();
     public bool IsNew { get; set; }
     public bool IsArchivedWorkshop { get; set; }
     public string? StatusMessage { get; set; }
@@ -49,7 +48,6 @@ public class WorkshopEditModel : PageModel
         return null;
     }
 
-    // GET: load the form (empty for new, pre-filled for edit)
     public async Task<IActionResult> OnGetAsync(string action, int? id)
     {
         var auth = CheckAuth(); if (auth != null) return auth;
@@ -60,24 +58,22 @@ public class WorkshopEditModel : PageModel
         {
             var workshop = await _db.Workshops
                 .Include(w => w.Photos)
+                .Include(w => w.Occurrences)
                 .FirstOrDefaultAsync(w => w.Id == id);
 
             if (workshop == null) return NotFound();
 
-            // Pre-fill the form with existing values
             Input = new WorkshopInputModel
             {
                 Id = workshop.Id,
                 Name = workshop.Name,
-                IsPinned = workshop.IsPinned,
-                Date = workshop.Date,
-                StartTime = workshop.StartTime,
-                EndTime = workshop.EndTime,
+                IsReservable = workshop.IsReservable,
+                BookingType = workshop.BookingType ?? "webpage",
+                BookingValue = workshop.BookingValue ?? "",
                 Description = workshop.Description,
                 Price = workshop.Price,
                 MaxParticipants = workshop.MaxParticipants,
                 InstagramPostUrl = workshop.InstagramPostUrl,
-                EntrioUrl = workshop.EntrioUrl,
                 HostName = workshop.HostName,
                 HostInstagram = workshop.HostInstagram,
                 HostWebsite = workshop.HostWebsite,
@@ -85,37 +81,41 @@ public class WorkshopEditModel : PageModel
                 ExistingBannerUrl = workshop.BannerUrl,
             };
             ExistingPhotos = workshop.Photos.OrderBy(p => p.Order).ToList();
-            IsArchivedWorkshop = workshop.Date < DateTime.Today;
+            Occurrences = workshop.Occurrences.OrderBy(o => o.Date).ToList();
+            IsArchivedWorkshop = workshop.IsArchived;
         }
         else
         {
-            Input.Date = DateTime.Today.AddDays(7); // sensible default
+            NewOccurrence.Date = DateTime.Today.AddDays(7); // sensible default
         }
 
         return Page();
     }
 
-    // POST: save the workshop (create or update)
     public async Task<IActionResult> OnPostAsync(string action, int? id)
     {
         var auth = CheckAuth(); if (auth != null) return auth;
         IsNew = action == "new";
 
-        // Re-load existing photos for display in case of validation error
         if (!IsNew && Input.Id > 0)
-            ExistingPhotos = await _db.WorkshopPhotos
-                .Where(p => p.WorkshopId == Input.Id)
-                .ToListAsync();
+        {
+            ExistingPhotos = await _db.WorkshopPhotos.Where(p => p.WorkshopId == Input.Id).ToListAsync();
+            Occurrences = await _db.WorkshopOccurrences.Where(o => o.WorkshopId == Input.Id).OrderBy(o => o.Date).ToListAsync();
+        }
 
         if (!ModelState.IsValid)
             return Page();
 
         if (IsNew)
         {
-            // --- CREATE ---
             if (BannerFile == null)
             {
                 ModelState.AddModelError("BannerFile", "Banner image is required.");
+                return Page();
+            }
+            if (!Input.IsReservable && NewOccurrence.Date == default)
+            {
+                ModelState.AddModelError("NewOccurrence.Date", "Date is required for a non-reservable workshop.");
                 return Page();
             }
 
@@ -127,15 +127,13 @@ public class WorkshopEditModel : PageModel
             var workshop = new Workshop
             {
                 Name = Input.Name,
-                IsPinned = Input.IsPinned,
-                Date = Input.IsPinned ? new DateTime(2099, 1, 1) : Input.Date,
-                StartTime = Input.IsPinned ? TimeSpan.Zero : Input.StartTime,
-                EndTime = Input.IsPinned ? null : Input.EndTime,
+                IsReservable = Input.IsReservable,
+                BookingType = Input.IsReservable ? Input.BookingType : null,
+                BookingValue = Input.IsReservable ? Input.BookingValue : null,
                 Description = Input.Description,
                 Price = Input.Price,
                 MaxParticipants = Input.MaxParticipants,
                 InstagramPostUrl = Input.InstagramPostUrl ?? "",
-                EntrioUrl = Input.EntrioUrl,
                 HostName = Input.HostName,
                 HostInstagram = Input.HostInstagram,
                 HostWebsite = Input.HostWebsite,
@@ -146,54 +144,55 @@ public class WorkshopEditModel : PageModel
 
             _db.Workshops.Add(workshop);
             await _db.SaveChangesAsync();
-
-            // Save additional photos
             await SavePhotosAsync(workshop.Id);
 
-            if (Input.NotifySubscribers)
+            WorkshopOccurrence? firstOccurrence = null;
+            if (!Input.IsReservable)
+            {
+                firstOccurrence = new WorkshopOccurrence
+                {
+                    WorkshopId = workshop.Id,
+                    Date = NewOccurrence.Date,
+                    StartTime = NewOccurrence.StartTime,
+                    EndTime = NewOccurrence.EndTime,
+                    EntrioUrl = NewOccurrence.EntrioUrl,
+                };
+                _db.WorkshopOccurrences.Add(firstOccurrence);
+                await _db.SaveChangesAsync();
+            }
+
+            if (Input.NotifySubscribers && firstOccurrence != null)
             {
                 var subject = string.IsNullOrWhiteSpace(Input.EmailSubject)
                     ? $"Nova radionica! - {workshop.Name}"
                     : Input.EmailSubject;
                 var newSubs = await ActiveSubscribersAsync();
-                _ = _email.SendWorkshopAnnouncementAsync(workshop, newSubs, subject);
+                _ = _email.SendWorkshopAnnouncementAsync(workshop, firstOccurrence, newSubs, subject);
             }
         }
         else
         {
-            // --- UPDATE ---
             var workshop = await _db.Workshops.FindAsync(Input.Id);
             if (workshop == null) return NotFound();
 
-            bool wasArchived = workshop.IsArchived || workshop.Date < DateTime.Today;
-
             workshop.Name = Input.Name;
-            workshop.IsPinned = Input.IsPinned;
-            workshop.Date = Input.IsPinned ? new DateTime(2099, 1, 1) : Input.Date;
-            workshop.StartTime = Input.IsPinned ? TimeSpan.Zero : Input.StartTime;
-            workshop.EndTime = Input.IsPinned ? null : Input.EndTime;
+            workshop.IsReservable = Input.IsReservable;
+            workshop.BookingType = Input.IsReservable ? Input.BookingType : null;
+            workshop.BookingValue = Input.IsReservable ? Input.BookingValue : null;
             workshop.Description = Input.Description;
             workshop.Price = Input.Price;
             workshop.MaxParticipants = Input.MaxParticipants;
             workshop.InstagramPostUrl = Input.InstagramPostUrl ?? "";
-            workshop.EntrioUrl = Input.EntrioUrl;
             workshop.HostName = Input.HostName;
             workshop.HostInstagram = Input.HostInstagram;
             workshop.HostWebsite = Input.HostWebsite;
 
-            // Reviving from archive: clear the flag and notify subscribers
-            bool isRevival = wasArchived && Input.Date >= DateTime.Today;
-            if (isRevival)
-                workshop.IsArchived = false;
-
-            // Replace banner if a new file was uploaded
             if (BannerFile != null)
             {
                 if (workshop.BannerUrl != null) _files.DeleteImage(workshop.BannerUrl);
                 workshop.BannerUrl = await _files.SaveImageAsync(BannerFile, "workshops");
             }
 
-            // Replace logo if a new file was uploaded
             if (LogoFile != null)
             {
                 if (workshop.LogoUrl != null) _files.DeleteImage(workshop.LogoUrl);
@@ -202,18 +201,77 @@ public class WorkshopEditModel : PageModel
 
             await _db.SaveChangesAsync();
             await SavePhotosAsync(workshop.Id);
-
-            if (isRevival)
-            {
-                var reviveSubs = await ActiveSubscribersAsync();
-                _ = _email.SendWorkshopAnnouncementAsync(workshop, reviveSubs);
-            }
         }
 
         return RedirectToPage("/Admin/Index");
     }
 
-    // DELETE a single photo (the ✕ button on each photo thumbnail)
+    // Adds one more date to an existing (non-reservable) workshop — this is the
+    // "New date" feature: reuse the workshop's content, just pick a new date.
+    public async Task<IActionResult> OnPostAddOccurrenceAsync(int workshopId)
+    {
+        var auth = CheckAuth(); if (auth != null) return auth;
+
+        _db.WorkshopOccurrences.Add(new WorkshopOccurrence
+        {
+            WorkshopId = workshopId,
+            Date = NewOccurrence.Date,
+            StartTime = NewOccurrence.StartTime,
+            EndTime = NewOccurrence.EndTime,
+            EntrioUrl = NewOccurrence.EntrioUrl,
+        });
+        await _db.SaveChangesAsync();
+
+        return RedirectToPage(new { action = "edit", id = workshopId });
+    }
+
+    public async Task<IActionResult> OnPostUpdateOccurrenceAsync(int occurrenceId, int workshopId, DateTime occDate, TimeSpan occStartTime, TimeSpan? occEndTime, string? occEntrioUrl)
+    {
+        var auth = CheckAuth(); if (auth != null) return auth;
+
+        var occurrence = await _db.WorkshopOccurrences.FindAsync(occurrenceId);
+        if (occurrence != null)
+        {
+            occurrence.Date = occDate;
+            occurrence.StartTime = occStartTime;
+            occurrence.EndTime = occEndTime;
+            occurrence.EntrioUrl = occEntrioUrl;
+            await _db.SaveChangesAsync();
+        }
+
+        return RedirectToPage(new { action = "edit", id = workshopId });
+    }
+
+    public async Task<IActionResult> OnPostDeleteOccurrenceAsync(int occurrenceId, int workshopId)
+    {
+        var auth = CheckAuth(); if (auth != null) return auth;
+
+        var occurrence = await _db.WorkshopOccurrences.FindAsync(occurrenceId);
+        if (occurrence != null)
+        {
+            _db.WorkshopOccurrences.Remove(occurrence);
+            await _db.SaveChangesAsync();
+        }
+
+        return RedirectToPage(new { action = "edit", id = workshopId });
+    }
+
+    public async Task<IActionResult> OnPostArchiveAsync(int id)
+    {
+        var auth = CheckAuth(); if (auth != null) return auth;
+        var workshop = await _db.Workshops.FindAsync(id);
+        if (workshop != null) { workshop.IsArchived = true; await _db.SaveChangesAsync(); }
+        return RedirectToPage("/Admin/Index");
+    }
+
+    public async Task<IActionResult> OnPostUnarchiveAsync(int id)
+    {
+        var auth = CheckAuth(); if (auth != null) return auth;
+        var workshop = await _db.Workshops.FindAsync(id);
+        if (workshop != null) { workshop.IsArchived = false; await _db.SaveChangesAsync(); }
+        return RedirectToPage(new { action = "edit", id });
+    }
+
     public async Task<IActionResult> OnPostDeletePhotoAsync(int photoId, string action, int? id)
     {
         var auth = CheckAuth(); if (auth != null) return auth;
@@ -226,11 +284,9 @@ public class WorkshopEditModel : PageModel
             await _db.SaveChangesAsync();
         }
 
-        // Reload the edit form for the same workshop
         return RedirectToPage(new { action = "edit", id = id });
     }
 
-    // Helper: saves uploaded photo files and links them to a workshop
     private async Task SavePhotosAsync(int workshopId)
     {
         int order = await _db.WorkshopPhotos
@@ -258,8 +314,6 @@ public class WorkshopEditModel : PageModel
             .Where(s => s.ConfirmedAt != null && s.UnsubscribedAt == null)
             .ToListAsync();
 
-    // Helper: makes "Akvarel za početnike" → "akvarel-za-pocetnike"
-    // and adds "-2" if that slug is already taken
     private async Task<string> GenerateUniqueSlugAsync(string name)
     {
         var base_slug = SlugHelper.Generate(name);
@@ -273,21 +327,17 @@ public class WorkshopEditModel : PageModel
     }
 }
 
-// Flat DTO that matches the HTML form fields 1:1
-// No complex binding — just plain properties
 public class WorkshopInputModel
 {
     public int Id { get; set; }
     public string Name { get; set; } = "";
-    public bool IsPinned { get; set; }
-    public DateTime Date { get; set; } = DateTime.Today;
-    public TimeSpan StartTime { get; set; } = new TimeSpan(14, 0, 0);
-    public TimeSpan? EndTime { get; set; }
+    public bool IsReservable { get; set; }
+    public string BookingType { get; set; } = "webpage";
+    public string BookingValue { get; set; } = "";
     public string Description { get; set; } = "";
     public decimal? Price { get; set; }
     public int? MaxParticipants { get; set; }
     public string InstagramPostUrl { get; set; } = "";
-    public string? EntrioUrl { get; set; }
     public string? HostName { get; set; }
     public string? HostInstagram { get; set; }
     public string? HostWebsite { get; set; }
@@ -295,4 +345,12 @@ public class WorkshopInputModel
     public string? ExistingBannerUrl { get; set; }
     public bool NotifySubscribers { get; set; }
     public string EmailSubject { get; set; } = "";
+}
+
+public class OccurrenceInputModel
+{
+    public DateTime Date { get; set; } = DateTime.Today;
+    public TimeSpan StartTime { get; set; } = new TimeSpan(14, 0, 0);
+    public TimeSpan? EndTime { get; set; }
+    public string? EntrioUrl { get; set; }
 }

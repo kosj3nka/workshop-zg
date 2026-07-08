@@ -6,13 +6,6 @@
     ViewData["Title"] = isNew ? "Nova radionica" : "Uredi radionicu";
 }
 
-<!--
-    This single form handles BOTH adding and editing a workshop.
-    When action="new" there's no id, form creates a new row.
-    When action="edit" and id exists, form loads and updates that row.
-    The owner never has to think about this — it just works.
--->
-
 <div style="margin-bottom:24px;">
     <a href="/admin" style="font-size:0.85rem; color:var(--terracotta);">← Natrag na popis</a>
 </div>
@@ -22,22 +15,16 @@
 @if (Model.IsArchivedWorkshop)
 {
     <div class="login-error" style="background:#FEF9EC; color:#92610A; border-left:4px solid #F6C84B; margin-bottom:24px;">
-        Ova radionica je arhivirana. Promijeni datum (i što god trebaš) — pa spremi da bi je objavila ponovo.
-    </div>
-}
-
-@if (!string.IsNullOrEmpty(Model.StatusMessage))
-{
-    <div class="login-error" style="background:#D1FAE5; color:#065F46; margin-bottom:24px;">
-        @Model.StatusMessage
+        Ova radionica je arhivirana.
+        <form method="post" asp-page-handler="Unarchive" asp-route-id="@Model.Input.Id" style="display:inline;">
+            <button type="submit" class="btn btn-outline btn-sm" style="margin-left:8px;">Vrati iz arhive</button>
+        </form>
     </div>
 }
 
 <form method="post" enctype="multipart/form-data" class="form-card">
-    <!-- Hidden id so the POST knows which workshop to update -->
     <input type="hidden" name="Input.Id" value="@Model.Input.Id" />
 
-    <!-- ===== REQUIRED FIELDS ===== -->
     <p class="form-section-title">Osnovni podaci</p>
 
     <div class="form-group">
@@ -48,54 +35,80 @@
 
     <div class="form-group">
         <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
-            <input type="hidden" name="Input.IsPinned" value="false" />
-            <input type="checkbox" id="chk-pinned" name="Input.IsPinned" value="true"
-                   @(Model.Input.IsPinned ? "checked" : "") style="width:16px;height:16px;"
-                   onchange="toggleDateRow(this.checked)" />
-            <span class="form-label" style="margin:0;">Pinned event (uvijek vidljiv, bez specifičnog datuma)</span>
+            <input type="hidden" name="Input.IsReservable" value="false" />
+            <input type="checkbox" id="chk-reservable" name="Input.IsReservable" value="true"
+                   @(Model.Input.IsReservable ? "checked" : "") style="width:16px;height:16px;"
+                   onchange="toggleReservable(this.checked)" />
+            <span class="form-label" style="margin:0;">Reservable (rezervira se za grupu, bez specifičnog datuma)</span>
         </label>
     </div>
 
-    <div id="date-row" style="display:@(Model.Input.IsPinned ? "none" : "")">
-        <div class="form-row">
-            <div class="form-group">
-                <label class="form-label">Datum <span class="required">*</span></label>
-                <input type="date" id="input-date" name="Input.Date" value="@Model.Input.Date.ToString("yyyy-MM-dd")"
-                       class="form-control" @(Model.Input.IsPinned ? "" : "required") />
+    @if (isNew)
+    {
+        <div id="date-row" style="display:@(Model.Input.IsReservable ? "none" : "")">
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Datum <span class="required">*</span></label>
+                    <input type="date" id="input-date" name="NewOccurrence.Date" value="@Model.NewOccurrence.Date.ToString("yyyy-MM-dd")"
+                           class="form-control" @(Model.Input.IsReservable ? "" : "required") />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Početak <span class="required">*</span></label>
+                    <input type="time" id="input-starttime" name="NewOccurrence.StartTime" value="@Model.NewOccurrence.StartTime.ToString(@"hh\:mm")"
+                           class="form-control" @(Model.Input.IsReservable ? "" : "required") />
+                </div>
             </div>
             <div class="form-group">
-                <label class="form-label">Početak <span class="required">*</span></label>
-                <input type="time" id="input-starttime" name="Input.StartTime" value="@Model.Input.StartTime.ToString(@"hh\:mm")"
-                       class="form-control" @(Model.Input.IsPinned ? "" : "required") />
+                <label class="form-label">Kraj <span style="opacity:0.5;font-weight:400;">(opcionalno)</span></label>
+                <input type="time" name="NewOccurrence.EndTime"
+                       value="@(Model.NewOccurrence.EndTime.HasValue ? Model.NewOccurrence.EndTime.Value.ToString(@"hh\:mm") : "")"
+                       class="form-control" />
             </div>
+            <div class="form-group">
+                <label class="form-label">Entrio URL (ulaznice) <span style="opacity:0.5;font-weight:400;">(opcionalno)</span></label>
+                <input type="url" name="NewOccurrence.EntrioUrl" value="@Model.NewOccurrence.EntrioUrl"
+                       class="form-control" placeholder="https://entrio.hr/event/..." />
+            </div>
+        </div>
+    }
+
+    <div id="reservable-row" style="display:@(Model.Input.IsReservable ? "" : "none")">
+        <div class="form-group">
+            <label class="form-label">Način rezervacije</label>
+            <select name="Input.BookingType" class="form-control" onchange="toggleBookingValue(this.value)">
+                <option value="webpage" selected="@(Model.Input.BookingType == "webpage")">Web stranica</option>
+                <option value="email" selected="@(Model.Input.BookingType == "email")">Email</option>
+            </select>
         </div>
         <div class="form-group">
-            <label class="form-label">Kraj <span style="opacity:0.5;font-weight:400;">(opcionalno)</span></label>
-            <input type="time" name="Input.EndTime"
-                   value="@(Model.Input.EndTime.HasValue ? Model.Input.EndTime.Value.ToString(@"hh\:mm") : "")"
-                   class="form-control" />
+            <label class="form-label" id="booking-value-label">
+                @(Model.Input.BookingType == "email" ? "Email adresa" : "URL stranice")
+            </label>
+            <input type="text" name="Input.BookingValue" value="@Model.Input.BookingValue"
+                   class="form-control" placeholder="/suradnja#upit ili npr@workshopzagreb.com" />
         </div>
     </div>
+
+    <script>
+    function toggleReservable(isReservable) {
+        var dateRow = document.getElementById('date-row');
+        if (dateRow) dateRow.style.display = isReservable ? 'none' : '';
+        document.getElementById('reservable-row').style.display = isReservable ? '' : 'none';
+        var dateInput = document.getElementById('input-date');
+        var timeInput = document.getElementById('input-starttime');
+        if (dateInput) dateInput.required = !isReservable;
+        if (timeInput) timeInput.required = !isReservable;
+    }
+    function toggleBookingValue(type) {
+        document.getElementById('booking-value-label').textContent = type === 'email' ? 'Email adresa' : 'URL stranice';
+    }
+    </script>
 
     <div class="form-group">
         <label class="form-label">Cijena (€) <span style="opacity:0.5;font-weight:400;">(opcionalno)</span></label>
         <input type="number" name="Input.Price" value="@Model.Input.Price"
                class="form-control" min="0" step="1" placeholder="npr. 25" />
-        <p class="form-hint" id="price-hint-regular" style="display:@(Model.Input.IsPinned ? "none" : "")">0 ili prazno = besplatno</p>
-        <p class="form-hint" id="price-hint-pinned" style="display:@(Model.Input.IsPinned ? "" : "none")">Prikazuje se kao "od X €" na kartici.</p>
     </div>
-
-    <script>
-    function toggleDateRow(isPinned) {
-        document.getElementById('date-row').style.display = isPinned ? 'none' : '';
-        document.getElementById('price-hint-regular').style.display = isPinned ? 'none' : '';
-        document.getElementById('price-hint-pinned').style.display = isPinned ? '' : 'none';
-        var dateInput = document.getElementById('input-date');
-        var timeInput = document.getElementById('input-starttime');
-        dateInput.required = !isPinned;
-        timeInput.required = !isPinned;
-    }
-    </script>
 
     <div class="form-group">
         <label class="form-label">Opis <span class="required">*</span></label>
@@ -103,89 +116,64 @@
                   placeholder="Opišite radionicu — što će polaznici naučiti, što je uključeno...">@Model.Input.Description</textarea>
     </div>
 
-    <div class="form-row">
-        <div class="form-group">
-            <label class="form-label">Max polaznika</label>
-            <input type="number" name="Input.MaxParticipants" value="@Model.Input.MaxParticipants"
-                   class="form-control" min="1" placeholder="npr. 12" />
-        </div>
-        <div class="form-group">
-            <label class="form-label">Entrio URL (ulaznice)</label>
-            <input type="url" name="Input.EntrioUrl" value="@Model.Input.EntrioUrl"
-                   class="form-control" placeholder="https://entrio.hr/event/..." />
-            <p class="form-hint">Link na Entrio stranicu za kupnju ulaznica</p>
-        </div>
+    <div class="form-group">
+        <label class="form-label">Max polaznika</label>
+        <input type="number" name="Input.MaxParticipants" value="@Model.Input.MaxParticipants"
+               class="form-control" min="1" placeholder="npr. 12" />
     </div>
 
-    <!-- ===== INSTAGRAM ===== -->
     <p class="form-section-title">Instagram</p>
 
     <div class="form-group">
         <label class="form-label">Link na Instagram objavu <span style="font-weight:400; font-size:0.9rem; opacity:0.6;">(opcionalno)</span></label>
         <input type="url" name="Input.InstagramPostUrl" value="@Model.Input.InstagramPostUrl"
                class="form-control" placeholder="https://www.instagram.com/p/..." />
-        <p class="form-hint">Objava koja promovira ovu radionicu</p>
     </div>
 
-    <!-- ===== VODITELJ ===== -->
     <p class="form-section-title">Voditelj radionice <span style="font-weight:400; font-size:0.9rem; opacity:0.6;">(opcionalno)</span></p>
 
     <div class="form-row">
         <div class="form-group">
             <label class="form-label">Ime voditelja</label>
-            <input type="text" name="Input.HostName" value="@Model.Input.HostName"
-                   class="form-control" placeholder="Ana Kovač" />
+            <input type="text" name="Input.HostName" value="@Model.Input.HostName" class="form-control" placeholder="Ana Kovač" />
         </div>
         <div class="form-group">
             <label class="form-label">Instagram voditelja</label>
-            <input type="url" name="Input.HostInstagram" value="@Model.Input.HostInstagram"
-                   class="form-control" placeholder="https://instagram.com/..." />
+            <input type="url" name="Input.HostInstagram" value="@Model.Input.HostInstagram" class="form-control" placeholder="https://instagram.com/..." />
         </div>
     </div>
 
     <div class="form-group">
         <label class="form-label">Web stranica voditelja</label>
-        <input type="url" name="Input.HostWebsite" value="@Model.Input.HostWebsite"
-               class="form-control" placeholder="https://..." />
+        <input type="url" name="Input.HostWebsite" value="@Model.Input.HostWebsite" class="form-control" placeholder="https://..." />
     </div>
 
-    <!-- ===== IMAGES ===== -->
     <p class="form-section-title">Images</p>
 
-    <!-- BANNER (required) -->
     <div class="form-group">
         <label class="form-label">Banner <span class="required">*</span></label>
         @if (!string.IsNullOrEmpty(Model.Input.ExistingBannerUrl))
         {
             <div style="margin-bottom:12px;">
-                <img src="@Model.Input.ExistingBannerUrl" alt="current banner"
-                     style="width:100%; max-height:180px; object-fit:cover;" />
+                <img src="@Model.Input.ExistingBannerUrl" alt="current banner" style="width:100%; max-height:180px; object-fit:cover;" />
                 <p class="form-hint">Current banner. Upload a new image to replace it.</p>
             </div>
         }
-        <input type="file" name="BannerFile" class="form-control"
-               accept="image/png,image/jpeg,image/webp"
+        <input type="file" name="BannerFile" class="form-control" accept="image/png,image/jpeg,image/webp"
                @(string.IsNullOrEmpty(Model.Input.ExistingBannerUrl) ? "required" : "") />
-        <p class="form-hint">Main image shown on workshop cards and at the top of the workshop page.</p>
     </div>
 
-    <!-- LOGO (optional) -->
     <div class="form-group">
         <label class="form-label">Logo <span style="font-weight:400; font-size:0.9rem; opacity:0.6;">(optional)</span></label>
         @if (!string.IsNullOrEmpty(Model.Input.ExistingLogoUrl))
         {
             <div style="margin-bottom:12px;">
-                <img src="@Model.Input.ExistingLogoUrl" alt="current logo"
-                     style="width:64px; height:64px; object-fit:cover; background:var(--cream);" />
-                <p class="form-hint">Current logo. Upload a new image to replace it.</p>
+                <img src="@Model.Input.ExistingLogoUrl" alt="current logo" style="width:64px; height:64px; object-fit:cover; background:var(--cream);" />
             </div>
         }
-        <input type="file" name="LogoFile" class="form-control"
-               accept="image/png,image/jpeg,image/webp" />
-        <p class="form-hint">Small square icon shown as a profile picture overlay on the card. Leave blank if not needed.</p>
+        <input type="file" name="LogoFile" class="form-control" accept="image/png,image/jpeg,image/webp" />
     </div>
 
-    <!-- ADDITIONAL PHOTOS (optional) -->
     <div class="form-group">
         <label class="form-label">Additional photos <span style="font-weight:400; font-size:0.9rem; opacity:0.6;">(optional)</span></label>
         @if (Model.ExistingPhotos.Any())
@@ -194,66 +182,115 @@
                 @foreach (var photo in Model.ExistingPhotos)
                 {
                     <div style="position:relative;">
-                        <img src="@photo.Url" alt=""
-                             style="height:80px; width:80px; object-fit:cover;" />
+                        <img src="@photo.Url" alt="" style="height:80px; width:80px; object-fit:cover;" />
                         <form method="post" asp-page-handler="DeletePhoto" asp-route-photoId="@photo.Id"
-                              style="position:absolute; top:-6px; right:-6px;"
-                              onsubmit="return confirm('Delete this photo?')">
-                            <button type="submit"
-                                    style="background:#DC2626; color:white; border:none; border-radius:50%; width:20px; height:20px; font-size:11px; cursor:pointer; line-height:1;">✕</button>
+                              style="position:absolute; top:-6px; right:-6px;" onsubmit="return confirm('Delete this photo?')">
+                            <button type="submit" style="background:#DC2626; color:white; border:none; border-radius:50%; width:20px; height:20px; font-size:11px; cursor:pointer; line-height:1;">✕</button>
                         </form>
                     </div>
                 }
             </div>
         }
-        <input type="file" name="PhotoFiles" class="form-control"
-               accept="image/png,image/jpeg,image/webp" multiple />
-        <p class="form-hint">Shown in a photo grid on the workshop detail page. Select multiple (Ctrl+click or Shift+click).</p>
+        <input type="file" name="PhotoFiles" class="form-control" accept="image/png,image/jpeg,image/webp" multiple />
     </div>
 
     @if (isNew)
     {
-        <!-- ===== NOTIFY SUBSCRIBERS ===== -->
         <p class="form-section-title">Obavijesti pretplatnike</p>
-
         <div class="form-group">
             <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
                 <input type="hidden" name="Input.NotifySubscribers" value="false" />
                 <input type="checkbox" id="chk-notify" name="Input.NotifySubscribers" value="true"
-                       style="width:16px;height:16px;" onchange="toggleNotify(this.checked)" />
+                       style="width:16px;height:16px;" onchange="document.getElementById('notify-fields').style.display = this.checked ? '' : 'none'" />
                 <span class="form-label" style="margin:0;">Pošalji email svim pretplatnicima</span>
             </label>
         </div>
-
         <div id="notify-fields" style="display:none">
             <div class="form-group">
                 <label class="form-label">Naslov emaila</label>
-                <input type="text" id="email-subject" name="Input.EmailSubject"
-                       class="form-control" placeholder="npr. Nova radionica! - Akvarel za početnike" />
-                <p class="form-hint">Automatski popunjen — možeš promijeniti.</p>
+                <input type="text" id="email-subject" name="Input.EmailSubject" class="form-control" placeholder="npr. Nova radionica! - Akvarel za početnike" />
             </div>
         </div>
-
         <script>
-        function toggleNotify(on) {
-            document.getElementById('notify-fields').style.display = on ? '' : 'none';
-        }
         document.addEventListener('DOMContentLoaded', function () {
             var nameInput = document.querySelector('input[name="Input.Name"]');
             var subjectInput = document.getElementById('email-subject');
             if (nameInput && subjectInput) {
-                nameInput.addEventListener('input', function () {
-                    subjectInput.value = 'Nova radionica! - ' + this.value;
-                });
+                nameInput.addEventListener('input', function () { subjectInput.value = 'Nova radionica! - ' + this.value; });
             }
         });
         </script>
     }
 
     <div class="form-actions">
-        <button type="submit" class="btn btn-primary">
-            @(isNew ? "Objavi radionicu" : "Spremi promjene")
-        </button>
+        <button type="submit" class="btn btn-primary">@(isNew ? "Objavi radionicu" : "Spremi promjene")</button>
         <a href="/admin" class="btn btn-outline">Odustani</a>
     </div>
 </form>
+
+@if (!isNew && !Model.Input.IsReservable)
+{
+    <div class="form-card" style="margin-top:24px;">
+        <p class="form-section-title">Termini</p>
+
+        @if (Model.Occurrences.Any())
+        {
+            @foreach (var occ in Model.Occurrences)
+            {
+                <form method="post" asp-page-handler="UpdateOccurrence" style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--border);">
+                    <input type="hidden" name="occurrenceId" value="@occ.Id" />
+                    <input type="hidden" name="workshopId" value="@Model.Input.Id" />
+                    <div class="form-group" style="margin:0;">
+                        <label class="form-label">Datum</label>
+                        <input type="date" name="occDate" value="@occ.Date.ToString("yyyy-MM-dd")" class="form-control" required />
+                    </div>
+                    <div class="form-group" style="margin:0;">
+                        <label class="form-label">Početak</label>
+                        <input type="time" name="occStartTime" value="@occ.StartTime.ToString(@"hh\:mm")" class="form-control" required />
+                    </div>
+                    <div class="form-group" style="margin:0;">
+                        <label class="form-label">Kraj</label>
+                        <input type="time" name="occEndTime" value="@(occ.EndTime.HasValue ? occ.EndTime.Value.ToString(@"hh\:mm") : "")" class="form-control" />
+                    </div>
+                    <div class="form-group" style="margin:0;flex:1;min-width:180px;">
+                        <label class="form-label">Entrio URL</label>
+                        <input type="url" name="occEntrioUrl" value="@occ.EntrioUrl" class="form-control" placeholder="https://entrio.hr/event/..." />
+                    </div>
+                    <button type="submit" class="btn btn-outline btn-sm">Spremi</button>
+                </form>
+                <form method="post" asp-page-handler="DeleteOccurrence" style="margin:-12px 0 16px;"
+                      onsubmit="return confirm('Obriši ovaj termin?')">
+                    <input type="hidden" name="occurrenceId" value="@occ.Id" />
+                    <input type="hidden" name="workshopId" value="@Model.Input.Id" />
+                    <button type="submit" class="btn btn-danger btn-sm">Obriši ovaj termin</button>
+                </form>
+            }
+        }
+        else
+        {
+            <p class="form-hint">Nema termina. Dodaj prvi ispod.</p>
+        }
+
+        <p class="form-section-title">+ Novi datum</p>
+        <form method="post" asp-page-handler="AddOccurrence" style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;">
+            <input type="hidden" name="workshopId" value="@Model.Input.Id" />
+            <div class="form-group" style="margin:0;">
+                <label class="form-label">Datum</label>
+                <input type="date" name="NewOccurrence.Date" class="form-control" required />
+            </div>
+            <div class="form-group" style="margin:0;">
+                <label class="form-label">Početak</label>
+                <input type="time" name="NewOccurrence.StartTime" value="14:00" class="form-control" required />
+            </div>
+            <div class="form-group" style="margin:0;">
+                <label class="form-label">Kraj</label>
+                <input type="time" name="NewOccurrence.EndTime" class="form-control" />
+            </div>
+            <div class="form-group" style="margin:0;flex:1;min-width:180px;">
+                <label class="form-label">Entrio URL</label>
+                <input type="url" name="NewOccurrence.EntrioUrl" class="form-control" placeholder="https://entrio.hr/event/..." />
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm">+ Novi datum</button>
+        </form>
+    </div>
+}
