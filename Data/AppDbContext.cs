@@ -5,20 +5,18 @@ namespace WorkshopZagreb.Data;
 
 // AppDbContext is the bridge between your C# models and the actual database.
 // Think of it as the "database session" — you query through it and save through it.
-// When you run `dotnet ef migrations add Init` + `dotnet ef database update`,
-// EF Core reads this class and creates the SQLite file with the right tables.
 public class AppDbContext : DbContext
 {
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
     // Each DbSet = one database table
     public DbSet<Workshop> Workshops => Set<Workshop>();
+    public DbSet<WorkshopOccurrence> WorkshopOccurrences => Set<WorkshopOccurrence>();
     public DbSet<WorkshopPhoto> WorkshopPhotos => Set<WorkshopPhoto>();
     public DbSet<Subscriber> Subscribers => Set<Subscriber>();
     public DbSet<ReservedDay> ReservedDays => Set<ReservedDay>();
     public DbSet<MenuCategory> MenuCategories => Set<MenuCategory>();
     public DbSet<MenuItem> MenuItems => Set<MenuItem>();
-    public DbSet<PinnedWorkshop> PinnedWorkshops => Set<PinnedWorkshop>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -39,6 +37,13 @@ public class AppDbContext : DbContext
             .HasForeignKey(p => p.WorkshopId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        // One workshop -> many occurrences (dates), delete occurrences when workshop is deleted
+        modelBuilder.Entity<Workshop>()
+            .HasMany(w => w.Occurrences)
+            .WithOne(o => o.Workshop)
+            .HasForeignKey(o => o.WorkshopId)
+            .OnDelete(DeleteBehavior.Cascade);
+
         // One menu category -> many menu items, delete items when category is deleted
         modelBuilder.Entity<MenuCategory>()
             .HasMany(c => c.Items)
@@ -52,29 +57,23 @@ public class AppDbContext : DbContext
             {
                 Id = 1,
                 Name = "Akvarel za početnike",
-                Date = DateTime.Today.AddDays(7),
-                StartTime = new TimeSpan(14, 0, 0),
-                EndTime = new TimeSpan(17, 0, 0),
                 Description = "Naučite osnove akvarela u opuštenom okruženju uz kavu. Sve materijale osiguravamo mi!",
                 BannerUrl = "/images/unutra.webp",
                 LogoUrl = null,
                 InstagramPostUrl = "https://www.instagram.com/workshop.zagreb/",
                 HostName = "Ana Kovač",
                 HostInstagram = "https://instagram.com/anakovac.art",
-                EntrioUrl = "https://entrio.hr",
                 Price = 35,
                 MaxParticipants = 12,
                 Slug = "akvarel-za-pocetnike",
                 IsArchived = false,
-                CreatedAt = DateTime.UtcNow
+                IsReservable = false,
+                CreatedAt = new DateTime(2026, 1, 1)
             },
             new Workshop
             {
                 Id = 2,
                 Name = "Keramika za sve",
-                Date = DateTime.Today.AddDays(14),
-                StartTime = new TimeSpan(11, 0, 0),
-                EndTime = new TimeSpan(14, 0, 0),
                 Description = "Uvod u oblikovanje gline na lončarskom kolu. Iskustvo nije potrebno — samo volontiranje za pranje ruku.",
                 BannerUrl = "/images/table.webp",
                 LogoUrl = null,
@@ -84,14 +83,13 @@ public class AppDbContext : DbContext
                 MaxParticipants = 8,
                 Slug = "keramika-za-sve",
                 IsArchived = false,
-                CreatedAt = DateTime.UtcNow
+                IsReservable = false,
+                CreatedAt = new DateTime(2026, 1, 1)
             },
             new Workshop
             {
                 Id = 3,
                 Name = "Makramé osnove",
-                Date = DateTime.Today.AddDays(21),
-                StartTime = new TimeSpan(16, 0, 0),
                 Description = "Naučite plesti makramé uzlove i izradite vlastiti zidni ukras.",
                 BannerUrl = "/images/prostor.jpg",
                 LogoUrl = null,
@@ -100,7 +98,39 @@ public class AppDbContext : DbContext
                 MaxParticipants = 10,
                 Slug = "makrame-osnove",
                 IsArchived = false,
-                CreatedAt = DateTime.UtcNow
+                IsReservable = false,
+                CreatedAt = new DateTime(2026, 1, 1)
+            }
+        );
+
+        // Matching seed dates for the three sample workshops above
+        modelBuilder.Entity<WorkshopOccurrence>().HasData(
+            new WorkshopOccurrence
+            {
+                Id = 1,
+                WorkshopId = 1,
+                Date = new DateTime(2026, 1, 8),
+                StartTime = new TimeSpan(14, 0, 0),
+                EndTime = new TimeSpan(17, 0, 0),
+                EntrioUrl = "https://entrio.hr",
+                CreatedAt = new DateTime(2026, 1, 1)
+            },
+            new WorkshopOccurrence
+            {
+                Id = 2,
+                WorkshopId = 2,
+                Date = new DateTime(2026, 1, 15),
+                StartTime = new TimeSpan(11, 0, 0),
+                EndTime = new TimeSpan(14, 0, 0),
+                CreatedAt = new DateTime(2026, 1, 1)
+            },
+            new WorkshopOccurrence
+            {
+                Id = 3,
+                WorkshopId = 3,
+                Date = new DateTime(2026, 1, 22),
+                StartTime = new TimeSpan(16, 0, 0),
+                CreatedAt = new DateTime(2026, 1, 1)
             }
         );
     }
