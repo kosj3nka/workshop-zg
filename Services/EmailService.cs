@@ -179,7 +179,7 @@ public class EmailService : IEmailService
 
             using var client = new SmtpClient();
             await client.ConnectAsync(host, int.Parse(smtp["Port"] ?? "587"), SecureSocketOptions.StartTls);
-            await client.AuthenticateAsync(smtp["Username"], smtp["Password"]);
+            await client.AuthenticateAsync(smtp["Username"], password);
             await client.SendAsync(msg);
             await client.DisconnectAsync(true);
         }
