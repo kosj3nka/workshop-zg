@@ -5,10 +5,10 @@ namespace WorkshopZagreb.Helpers;
 
 public static class GoogleCalendarHelper
 {
-    public static string BuildAddToCalendarUrl(Workshop w)
+    public static string BuildAddToCalendarUrl(Workshop w, WorkshopOccurrence occ)
     {
-        var start = w.Date.Date + w.StartTime;
-        var end = w.Date.Date + (w.EndTime ?? w.StartTime.Add(TimeSpan.FromHours(2)));
+        var start = occ.Date.Date + occ.StartTime;
+        var end = occ.Date.Date + (occ.EndTime ?? occ.StartTime.Add(TimeSpan.FromHours(2)));
 
         string Fmt(DateTime dt) => dt.ToString("yyyyMMddTHHmmss");
 

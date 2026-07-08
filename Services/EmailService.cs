@@ -9,7 +9,7 @@ namespace WorkshopZagreb.Services;
 public interface IEmailService
 {
     Task SendConfirmationAsync(string toEmail, string unsubscribeToken);
-    Task SendWorkshopAnnouncementAsync(Workshop workshop, IList<Subscriber> subscribers, string? subject = null);
+    Task SendWorkshopAnnouncementAsync(Workshop workshop, WorkshopOccurrence occurrence, IList<Subscriber> subscribers, string? subject = null);
     Task SendInquiryAsync(InquiryInput input);
 }
 
@@ -52,13 +52,13 @@ public class EmailService : IEmailService
         await SendOneAsync(toEmail, "Dobrodošli u Workshop Zagreb newsletter!", html);
     }
 
-    public async Task SendWorkshopAnnouncementAsync(Workshop workshop, IList<Subscriber> subscribers, string? subject = null)
+    public async Task SendWorkshopAnnouncementAsync(Workshop workshop, WorkshopOccurrence occurrence, IList<Subscriber> subscribers, string? subject = null)
     {
         if (!subscribers.Any()) return;
 
-        var date    = workshop.Date.ToString("dd. MM. yyyy");
-        var time    = workshop.StartTime.ToString(@"hh\:mm");
-        var endTime = workshop.EndTime.HasValue ? $" – {workshop.EndTime.Value:hh\\:mm}" : "";
+        var date    = occurrence.Date.ToString("dd. MM. yyyy");
+        var time    = occurrence.StartTime.ToString(@"hh\:mm");
+        var endTime = occurrence.EndTime.HasValue ? $" – {occurrence.EndTime.Value:hh\\:mm}" : "";
         var price   = workshop.Price.HasValue ? $"{workshop.Price:0} €" : "Besplatno";
         var maxPax  = workshop.MaxParticipants.HasValue
             ? $"<tr><td style='padding:5px 0;color:#888;font-size:0.85rem;width:100px;'>Mjesta</td><td style='font-weight:500;'>max {workshop.MaxParticipants}</td></tr>"
@@ -66,8 +66,8 @@ public class EmailService : IEmailService
         var hostRow = !string.IsNullOrEmpty(workshop.HostName)
             ? $"<tr><td style='padding:5px 0;color:#888;font-size:0.85rem;'>Voditelj</td><td style='font-weight:500;'>{workshop.HostName}</td></tr>"
             : "";
-        var ticketBtn = !string.IsNullOrEmpty(workshop.EntrioUrl)
-            ? $"""<p style="margin:28px 0 8px;"><a href="{workshop.EntrioUrl}" style="background:#c8a96e;color:#fff;padding:12px 32px;text-decoration:none;display:inline-block;font-size:0.9rem;font-weight:600;">Kupi ulaznicu</a></p>"""
+        var ticketBtn = !string.IsNullOrEmpty(occurrence.EntrioUrl)
+            ? $"""<p style="margin:28px 0 8px;"><a href="{occurrence.EntrioUrl}" style="background:#c8a96e;color:#fff;padding:12px 32px;text-decoration:none;display:inline-block;font-size:0.9rem;font-weight:600;">Kupi ulaznicu</a></p>"""
             : "";
         var calendarUrl = $"{SiteBase()}/#calendar";
         subject ??= $"Nova radionica: {workshop.Name} — Workshop Zagreb";
@@ -160,10 +160,11 @@ public class EmailService : IEmailService
         var smtp = _config.GetSection("Email:Smtp");
         var host = smtp["Host"];
         var from = smtp["From"];
+        var password = smtp["Password"];
 
-        if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(from))
+        if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(from) || string.IsNullOrEmpty(password))
         {
-            _log.LogWarning("Email:Smtp not configured — skipping send to {To}", toEmail);
+            _log.LogWarning("Email:Smtp not fully configured (missing Host/From/Password) — skipping send to {To}", toEmail);
             return;
         }
 
