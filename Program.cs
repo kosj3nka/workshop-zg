@@ -71,7 +71,6 @@ using (var scope = app.Services.CreateScope())
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     db.Database.EnsureCreated();
 
-    // Ensure any tables/columns added after initial creation also exist (safe to run repeatedly)
     db.Database.ExecuteSqlRaw(@"
         CREATE TABLE IF NOT EXISTS ReservedDays (
             Id    INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -79,43 +78,80 @@ using (var scope = app.Services.CreateScope())
             Label TEXT
         )");
 
-    // IsArchived column added June 2026 — ALTER TABLE is a no-op if it already exists
-    try
-    {
-        db.Database.ExecuteSqlRaw(
-            "ALTER TABLE Workshops ADD COLUMN IsArchived INTEGER NOT NULL DEFAULT 0");
-    }
+    try { db.Database.ExecuteSqlRaw("ALTER TABLE Workshops ADD COLUMN IsArchived INTEGER NOT NULL DEFAULT 0"); }
     catch { /* column already present — safe to ignore */ }
 
-    // IsPinned column added June 2026 — pinned workshops appear at the top with no date
-    try
-    {
-        db.Database.ExecuteSqlRaw(
-            "ALTER TABLE Workshops ADD COLUMN IsPinned INTEGER NOT NULL DEFAULT 0");
-    }
+    try { db.Database.ExecuteSqlRaw("ALTER TABLE Workshops ADD COLUMN IsPinned INTEGER NOT NULL DEFAULT 0"); }
     catch { /* column already present — safe to ignore */ }
 
-    // Seed birthday workshop as a pinned Workshop if none exist yet
-    if (!db.Workshops.Any(w => w.IsPinned))
+    try { db.Database.ExecuteSqlRaw("ALTER TABLE Workshops ADD COLUMN IsReservable INTEGER NOT NULL DEFAULT 0"); }
+    catch { /* column already present — safe to ignore */ }
+    try { db.Database.ExecuteSqlRaw("ALTER TABLE Workshops ADD COLUMN BookingType TEXT"); }
+    catch { /* column already present — safe to ignore */ }
+    try { db.Database.ExecuteSqlRaw("ALTER TABLE Workshops ADD COLUMN BookingValue TEXT"); }
+    catch { /* column already present — safe to ignore */ }
+
+    db.Database.ExecuteSqlRaw("UPDATE Workshops SET IsReservable = IsPinned");
+
+    db.Database.ExecuteSqlRaw(@"
+        UPDATE Workshops
+        SET BookingType = 'webpage', BookingValue = '/suradnja#upit'
+        WHERE IsReservable = 1 AND BookingType IS NULL");
+
+    db.Database.ExecuteSqlRaw(@"
+        CREATE TABLE IF NOT EXISTS WorkshopOccurrences (
+            Id         INTEGER PRIMARY KEY AUTOINCREMENT,
+            WorkshopId INTEGER NOT NULL,
+            Date       TEXT    NOT NULL,
+            StartTime  TEXT    NOT NULL,
+            EndTime    TEXT,
+            EntrioUrl  TEXT,
+            CreatedAt  TEXT    NOT NULL,
+            FOREIGN KEY (WorkshopId) REFERENCES Workshops(Id) ON DELETE CASCADE
+        )");
+
+    // One-row-per-key marker table so one-time seeds/backfills stay one-time,
+    // even if their result is later deleted by an admin (this fixes a real bug:
+    // the old "seed birthday workshop if none currently exist" check would
+    // recreate it on every deploy after someone deleted it).
+    db.Database.ExecuteSqlRaw(@"
+        CREATE TABLE IF NOT EXISTS SeedFlags (
+            Key   TEXT PRIMARY KEY,
+            Value INTEGER NOT NULL DEFAULT 1
+        )");
+
+    var occurrencesBackfillInserted = db.Database.ExecuteSqlRaw(
+        "INSERT OR IGNORE INTO SeedFlags (Key, Value) VALUES ('OccurrencesBackfilled', 1)");
+    if (occurrencesBackfillInserted > 0)
+    {
+        db.Database.ExecuteSqlRaw(@"
+            INSERT INTO WorkshopOccurrences (WorkshopId, Date, StartTime, EndTime, EntrioUrl, CreatedAt)
+            SELECT Id, Date, StartTime, EndTime, EntrioUrl, CreatedAt
+            FROM Workshops
+            WHERE IsPinned = 0");
+    }
+
+    var reservableSeedInserted = db.Database.ExecuteSqlRaw(
+        "INSERT OR IGNORE INTO SeedFlags (Key, Value) VALUES ('ReservableWorkshopSeeded', 1)");
+    if (reservableSeedInserted > 0)
     {
         db.Workshops.Add(new Workshop
         {
             Name = "Rođendanska radionica",
-            Date = new DateTime(2099, 1, 1),
-            StartTime = TimeSpan.Zero,
             Description = "Proslavite poseban dan na jedinstven način — rezervirajte naš prostor za svoju skupinu i zajedno naučite nešto novo. Odaberite temu radionice po želji i mi organiziramo sve ostalo.",
             InstagramPostUrl = "",
             Price = 25,
             MaxParticipants = 15,
             Slug = "rodendanska-radionica",
-            IsPinned = true,
+            IsReservable = true,
+            BookingType = "webpage",
+            BookingValue = "/suradnja#upit",
             IsArchived = false,
             CreatedAt = DateTime.UtcNow
         });
         db.SaveChanges();
     }
 
-    // Menu tables added June 2026 — editable Meni (Pića / Hrana) for the admin panel
     db.Database.ExecuteSqlRaw(@"
         CREATE TABLE IF NOT EXISTS MenuCategories (
             Id           INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -136,36 +172,6 @@ using (var scope = app.Services.CreateScope())
             FOREIGN KEY (MenuCategoryId) REFERENCES MenuCategories(Id) ON DELETE CASCADE
         )");
 
-    // PinnedWorkshops table — always-available reservable events (birthday, team building, etc.)
-    db.Database.ExecuteSqlRaw(@"
-        CREATE TABLE IF NOT EXISTS PinnedWorkshops (
-            Id            INTEGER PRIMARY KEY AUTOINCREMENT,
-            Name          TEXT    NOT NULL,
-            Description   TEXT    NOT NULL,
-            Subtitle      TEXT,
-            BannerUrl     TEXT,
-            StartingPrice REAL,
-            IsActive      INTEGER NOT NULL DEFAULT 1,
-            DisplayOrder  INTEGER NOT NULL DEFAULT 0
-        )");
-
-    if (!db.PinnedWorkshops.Any())
-    {
-        db.PinnedWorkshops.Add(new PinnedWorkshop
-        {
-            Name = "Rođendanska radionica",
-            Description = "Proslavite poseban dan na jedinstven način — rezervirajte naš prostor za svoju skupinu i zajedno naučite nešto novo. Odaberite temu radionice po želji i mi organiziramo sve ostalo.",
-            Subtitle = "Privatni event za do 15 osoba",
-            StartingPrice = 25,
-            IsActive = true,
-            DisplayOrder = 0
-        });
-        db.SaveChanges();
-    }
-
-    // Seed the menu once, from the content that used to be hardcoded in Meni.cshtml.
-    // Only runs the first time (when the table is still empty), so it never
-    // overwrites anything the owners edit afterwards.
     if (!db.MenuCategories.Any())
     {
         MenuSeed.Seed(db);
