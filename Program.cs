@@ -159,6 +159,17 @@ using (var scope = app.Services.CreateScope())
         catch { /* legacy columns don't exist on a fresh database — nothing to backfill */ }
     }
 
+    // If a reservable workshop already exists (migrated from the old IsPinned data
+    // via the backfill above, or seeded by a prior version of this app), mark the
+    // seed as already-consumed so we don't try to insert a second workshop with the
+    // same Slug below (Slug has a unique index — a duplicate insert would throw and
+    // crash the app on startup on any existing deployment).
+    if (db.Workshops.Any(w => w.IsReservable))
+    {
+        db.Database.ExecuteSqlRaw(
+            "INSERT OR IGNORE INTO SeedFlags (Key, Value) VALUES ('ReservableWorkshopSeeded', 1)");
+    }
+
     var reservableSeedInserted = db.Database.ExecuteSqlRaw(
         "INSERT OR IGNORE INTO SeedFlags (Key, Value) VALUES ('ReservableWorkshopSeeded', 1)");
     if (reservableSeedInserted > 0)
