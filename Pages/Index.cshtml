@@ -61,13 +61,14 @@
         <a href="/workshops">All workshops →</a>
     </div>
 
-    @if (Model.UpcomingWorkshops.Any())
+    @if (Model.UpcomingWorkshops.Any() || Model.ReservableWorkshops.Any())
     {
         <div class="workshops-scroll-track">
             @foreach (var w in Model.UpcomingWorkshops)
             {
                 bool hasLogo = !string.IsNullOrEmpty(w.LogoUrl)
                                && w.LogoUrl != "/images/workshops/placeholder-logo.png";
+                var occ = Model.NextOccurrenceByWorkshopId[w.Id];
                 <a href="/workshops/@w.Slug" class="workshop-card @(hasLogo ? "has-logo" : "")">
                     <div class="workshop-card-banner">
                         @if (!string.IsNullOrEmpty(w.BannerUrl))
@@ -83,12 +84,12 @@
                     }
                     <div class="workshop-card-body">
                         <p class="workshop-card-date">
-                            @w.Date.ToString("ddd, MMM d", new System.Globalization.CultureInfo("en-US"))
+                            @occ.Date.ToString("ddd, MMM d", new System.Globalization.CultureInfo("en-US"))
                         </p>
                         <h3 class="workshop-card-title">@w.Name</h3>
                         <p class="workshop-card-time">
-                            @w.StartTime.ToString(@"hh\:mm")
-                            @(w.EndTime.HasValue ? " – " + w.EndTime.Value.ToString(@"hh\:mm") : "")
+                            @occ.StartTime.ToString(@"hh\:mm")
+                            @(occ.EndTime.HasValue ? " – " + occ.EndTime.Value.ToString(@"hh\:mm") : "")
                         </p>
                         <p class="workshop-card-desc">@w.Description</p>
                     </div>
@@ -98,6 +99,26 @@
                         {
                             <span class="btn btn-outline btn-sm">Reserve</span>
                         }
+                    </div>
+                </a>
+            }
+            @foreach (var p in Model.ReservableWorkshops)
+            {
+                var bookHref = p.BookingType == "email" ? $"mailto:{p.BookingValue}" : p.BookingValue ?? "/suradnja#upit";
+                <a href="@bookHref" target="@(p.BookingType == "email" ? null : "_blank")" rel="@(p.BookingType == "email" ? null : "noopener")" class="workshop-card">
+                    <div class="workshop-card-banner">
+                        @if (!string.IsNullOrEmpty(p.BannerUrl))
+                        {
+                            <img src="@p.BannerUrl" alt="@p.Name" />
+                        }
+                    </div>
+                    <div class="workshop-card-body">
+                        <p class="workshop-card-date">Uvijek dostupno</p>
+                        <h3 class="workshop-card-title">@p.Name</h3>
+                        <p class="workshop-card-desc">@p.Description</p>
+                    </div>
+                    <div class="workshop-card-footer">
+                        <span class="btn btn-outline btn-sm">Rezerviraj →</span>
                     </div>
                 </a>
             }
@@ -151,23 +172,23 @@
                             var reserved    = Model.ReservedDays.TryGetValue(date, out var rd1) ? rd1 : null;
                             bool isToday    = date == DateTime.Today;
                             bool isNonWork  = date.DayOfWeek == DayOfWeek.Sunday || Model.Holidays.Contains(date);
-                            var logoW = ws.FirstOrDefault(w => !string.IsNullOrEmpty(w.LogoUrl));
+                            var logoEntry = ws.FirstOrDefault(e => !string.IsNullOrEmpty(e.Workshop.LogoUrl));
                             @if (ws.Any())
                             {
-                                <a href="/workshops/@ws.First().Slug" class="cal-day @(isToday ? "cal-day--today" : "") cal-day--has-event @(reserved != null ? "cal-day--reserved" : "") @(isNonWork ? "cal-day--nonworking" : "")">
+                                <a href="/workshops/@ws.First().Workshop.Slug" class="cal-day @(isToday ? "cal-day--today" : "") cal-day--has-event @(reserved != null ? "cal-day--reserved" : "") @(isNonWork ? "cal-day--nonworking" : "")">
                                     <span class="cal-day-num">@d</span>
-                                    @if (logoW != null)
+                                    @if (logoEntry.Workshop != null)
                                     {
-                                        <img src="@logoW.LogoUrl" class="cal-day-logo" alt="" />
+                                        <img src="@logoEntry.Workshop.LogoUrl" class="cal-day-logo" alt="" />
                                     }
                                     @if (reserved != null && !string.IsNullOrEmpty(reserved.Label))
                                     {
                                         <span class="cal-reserved-label">@reserved.Label</span>
                                     }
-                                    @foreach (var w in ws)
+                                    @foreach (var entry in ws)
                                     {
                                         <span class="cal-event">
-                                            <span class="cal-event-name">@w.Name</span>
+                                            <span class="cal-event-name">@entry.Workshop.Name</span>
                                         </span>
                                     }
                                 </a>
@@ -208,23 +229,23 @@
                             var reserved    = Model.ReservedDays.TryGetValue(date, out var rd2) ? rd2 : null;
                             bool isToday    = date == DateTime.Today;
                             bool isNonWork2 = date.DayOfWeek == DayOfWeek.Sunday || Model.Holidays.Contains(date);
-                            var logoW = ws.FirstOrDefault(w => !string.IsNullOrEmpty(w.LogoUrl));
+                            var logoEntry = ws.FirstOrDefault(e => !string.IsNullOrEmpty(e.Workshop.LogoUrl));
                             @if (ws.Any())
                             {
-                                <a href="/workshops/@ws.First().Slug" class="cal-day @(isToday ? "cal-day--today" : "") cal-day--has-event @(reserved != null ? "cal-day--reserved" : "") @(isNonWork2 ? "cal-day--nonworking" : "")">
+                                <a href="/workshops/@ws.First().Workshop.Slug" class="cal-day @(isToday ? "cal-day--today" : "") cal-day--has-event @(reserved != null ? "cal-day--reserved" : "") @(isNonWork2 ? "cal-day--nonworking" : "")">
                                     <span class="cal-day-num">@d</span>
-                                    @if (logoW != null)
+                                    @if (logoEntry.Workshop != null)
                                     {
-                                        <img src="@logoW.LogoUrl" class="cal-day-logo" alt="" />
+                                        <img src="@logoEntry.Workshop.LogoUrl" class="cal-day-logo" alt="" />
                                     }
                                     @if (reserved != null && !string.IsNullOrEmpty(reserved.Label))
                                     {
                                         <span class="cal-reserved-label">@reserved.Label</span>
                                     }
-                                    @foreach (var w in ws)
+                                    @foreach (var entry in ws)
                                     {
                                         <span class="cal-event">
-                                            <span class="cal-event-name">@w.Name</span>
+                                            <span class="cal-event-name">@entry.Workshop.Name</span>
                                         </span>
                                     }
                                 </a>
@@ -246,37 +267,6 @@
 
         </div><!-- /calendar-grid-outer -->
     </div><!-- /calendar-wrapper -->
-</section>
-
-<!-- ============= NEWSLETTER ============= -->
-<section class="home-newsletter">
-    <div class="home-newsletter-inner">
-        <div class="home-newsletter-text">
-            <p class="mood-eyebrow">Newsletter</p>
-            <h2>Budite prvi kada stignu nove radionice.</h2>
-            <p>Obavijest čim otvorimo novu radionicu, tako da ste uvijek informirai o novim događajima.</p>
-        </div>
-        <form class="home-newsletter-form"
-              x-data="{ email:'', submitted:false, error:'' }"
-              x-on:submit.prevent="
-                fetch('/api/subscribe', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email }) })
-                  .then(r => r.json())
-                  .then(d => { if (d.ok) { submitted = true; localStorage.setItem('newsletter_subscribed','1'); } else { error = d.message || 'Greška.'; } })
-                  .catch(() => { error = 'Greška. Pokušajte ponovo.'; })
-              ">
-            <template x-if="submitted">
-                <p class="home-newsletter-thanks">Hvala! Provjerite inbox.</p>
-            </template>
-            <template x-if="!submitted">
-                <div class="home-newsletter-row">
-                    <input type="email" x-model="email" placeholder="vaš@email.com" required class="home-newsletter-input" />
-                    <button type="submit" class="btn btn-primary">Prijavi se</button>
-                </div>
-            </template>
-            <p x-show="error" x-text="error" style="color:#c0392b;font-size:0.8rem;margin-top:8px;"></p>
-            <p class="home-newsletter-gdpr">Prijavom prihvaćate našu <a href="/privacy">politiku privatnosti</a>.</p>
-        </form>
-    </div>
 </section>
 
 <!-- ============= MOOD SPLIT ============= -->
@@ -312,6 +302,37 @@
             <img src="/images/DJ.jpg" alt="Evening event" />
             <div class="quad-overlay"><span>Events</span></div>
         </div>
+    </div>
+</section>
+
+<!-- ============= NEWSLETTER ============= -->
+<section class="home-newsletter">
+    <div class="home-newsletter-inner">
+        <div class="home-newsletter-text">
+            <p class="mood-eyebrow">Newsletter</p>
+            <h2>Budite prvi kada stignu nove radionice.</h2>
+            <p>Obavijest čim otvorimo novu radionicu, tako da ste uvijek informirai o novim događajima.</p>
+        </div>
+        <form class="home-newsletter-form"
+              x-data="{ email:'', submitted:false, error:'' }"
+              x-on:submit.prevent="
+                fetch('/api/subscribe', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email }) })
+                  .then(r => r.json())
+                  .then(d => { if (d.ok) { submitted = true; localStorage.setItem('newsletter_subscribed','1'); } else { error = d.message || 'Greška.'; } })
+                  .catch(() => { error = 'Greška. Pokušajte ponovo.'; })
+              ">
+            <template x-if="submitted">
+                <p class="home-newsletter-thanks">Hvala! Provjerite inbox.</p>
+            </template>
+            <template x-if="!submitted">
+                <div class="home-newsletter-row">
+                    <input type="email" x-model="email" placeholder="vaš@email.com" required class="home-newsletter-input" />
+                    <button type="submit" class="btn btn-primary">Prijavi se</button>
+                </div>
+            </template>
+            <p x-show="error" x-text="error" style="color:#c0392b;font-size:0.8rem;margin-top:8px;"></p>
+            <p class="home-newsletter-gdpr">Prijavom prihvaćate našu <a href="/privacy">politiku privatnosti</a>.</p>
+        </form>
     </div>
 </section>
 
