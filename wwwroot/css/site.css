@@ -1242,3 +1242,7 @@ a.cal-day:hover .cal-event { color: var(--espresso); }
     /* Calendar cells — taller on mobile so workshop names are visible */
     .cal-day { min-height: 72px; height: auto; }
 }
+
+.icon-link { display: inline-flex; align-items: center; justify-content: center; color: inherit; opacity: 0.75; transition: opacity 0.15s; }
+.icon-link:hover { opacity: 1; }
+.footer-social .icon-link { width: 20px; height: 20px; }
