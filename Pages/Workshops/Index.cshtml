@@ -21,7 +21,7 @@
         @foreach (var p in Model.ReservableWorkshops)
         {
             var bookHref = p.BookingType == "email" ? $"mailto:{p.BookingValue}" : p.BookingValue ?? "/suradnja#upit";
-            <a href="@bookHref" @(p.BookingType == "email" ? "" : "target=\"_blank\" rel=\"noopener\"") class="workshop-card">
+            <a href="@bookHref" target="@(p.BookingType == "email" ? null : "_blank")" rel="@(p.BookingType == "email" ? null : "noopener")" class="workshop-card">
                 <div class="workshop-card-banner">
                     @if (!string.IsNullOrEmpty(p.BannerUrl))
                     {
