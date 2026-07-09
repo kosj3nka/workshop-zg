@@ -13,7 +13,11 @@ public class AdminIndexModel : PageModel
 
     public List<Workshop> UpcomingWorkshops { get; set; } = new();
     public List<Workshop> PastWorkshops     { get; set; } = new();
-    public List<Workshop> PinnedWorkshops   { get; set; } = new();
+    public List<Workshop> ReservableWorkshops { get; set; } = new();
+
+    // For the "next occurrence" line + "+N termina" count in the Upcoming tab
+    public Dictionary<int, WorkshopOccurrence> NextOccurrenceByWorkshopId { get; set; } = new();
+    public Dictionary<int, int> UpcomingOccurrenceCountByWorkshopId { get; set; } = new();
 
     private IActionResult? CheckAuth()
     {
@@ -27,10 +31,28 @@ public class AdminIndexModel : PageModel
         var redirect = CheckAuth();
         if (redirect != null) return redirect;
 
-        var all = await _db.Workshops.OrderBy(w => w.Date).ToListAsync();
-        PinnedWorkshops   = all.Where(w => !w.IsArchived && w.IsPinned).ToList();
-        UpcomingWorkshops = all.Where(w => w.IsUpcoming).ToList();
-        PastWorkshops     = all.Where(w => !w.IsPinned && !w.IsUpcoming).OrderByDescending(w => w.Date).ToList();
+        var today = DateTime.Today;
+        var all = await _db.Workshops.Include(w => w.Occurrences).ToListAsync();
+
+        ReservableWorkshops = all.Where(w => !w.IsArchived && w.IsReservable).ToList();
+
+        var nonReservable = all.Where(w => !w.IsReservable).ToList();
+        UpcomingWorkshops = nonReservable
+            .Where(w => !w.IsArchived && w.Occurrences.Any(o => o.Date >= today))
+            .OrderBy(w => w.Occurrences.Where(o => o.Date >= today).Min(o => o.Date))
+            .ToList();
+        PastWorkshops = nonReservable
+            .Where(w => w.IsArchived || !w.Occurrences.Any(o => o.Date >= today))
+            .OrderByDescending(w => w.Occurrences.Any() ? w.Occurrences.Max(o => o.Date) : DateTime.MinValue)
+            .ToList();
+
+        foreach (var w in UpcomingWorkshops)
+        {
+            var upcoming = w.Occurrences.Where(o => o.Date >= today).OrderBy(o => o.Date).ToList();
+            NextOccurrenceByWorkshopId[w.Id] = upcoming.First();
+            UpcomingOccurrenceCountByWorkshopId[w.Id] = upcoming.Count;
+        }
+
         return Page();
     }
 
@@ -49,11 +71,8 @@ public class AdminIndexModel : PageModel
         var redirect = CheckAuth();
         if (redirect != null) return redirect;
 
-        var workshop = await _db.Workshops.Include(w => w.Photos).FirstOrDefaultAsync(w => w.Id == id);
+        var workshop = await _db.Workshops.Include(w => w.Photos).Include(w => w.Occurrences).FirstOrDefaultAsync(w => w.Id == id);
         if (workshop != null) { _db.Workshops.Remove(workshop); await _db.SaveChangesAsync(); }
         return RedirectToPage();
     }
-
-    // Kept for backward compat in case any old link still calls it
-    public Task<IActionResult> OnPostDeletePinnedAsync(int id) => OnPostDeleteAsync(id);
 }
