@@ -103,13 +103,17 @@ public class AppDbContext : DbContext
             }
         );
 
-        // Matching seed dates for the three sample workshops above
+        // Matching seed dates for the three sample workshops above.
+        // These are relative to "today" (rather than hardcoded calendar dates) so a
+        // freshly-created dev database always shows the sample workshops as upcoming,
+        // no matter when `dotnet run` is first executed against an empty workshop.db.
+        var seedToday = DateTime.Today;
         modelBuilder.Entity<WorkshopOccurrence>().HasData(
             new WorkshopOccurrence
             {
                 Id = 1,
                 WorkshopId = 1,
-                Date = new DateTime(2026, 1, 8),
+                Date = seedToday.AddDays(14),
                 StartTime = new TimeSpan(14, 0, 0),
                 EndTime = new TimeSpan(17, 0, 0),
                 EntrioUrl = "https://entrio.hr",
@@ -119,7 +123,7 @@ public class AppDbContext : DbContext
             {
                 Id = 2,
                 WorkshopId = 2,
-                Date = new DateTime(2026, 1, 15),
+                Date = seedToday.AddDays(21),
                 StartTime = new TimeSpan(11, 0, 0),
                 EndTime = new TimeSpan(14, 0, 0),
                 CreatedAt = new DateTime(2026, 1, 1)
@@ -128,7 +132,7 @@ public class AppDbContext : DbContext
             {
                 Id = 3,
                 WorkshopId = 3,
-                Date = new DateTime(2026, 1, 22),
+                Date = seedToday.AddDays(28),
                 StartTime = new TimeSpan(16, 0, 0),
                 CreatedAt = new DateTime(2026, 1, 1)
             }
