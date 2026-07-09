@@ -10,7 +10,6 @@
         <p>Every week a different discipline, a different host, a different way of seeing things. Show up curious — we handle the rest.</p>
     </div>
 
-    <!-- CTA bar — private events link -->
     <div class="workshops-cta-bar">
         <div class="workshops-cta-inner">
             <p>Planirate privatni event, team building ili vlastitu radionicu u našem prostoru?</p>
@@ -19,10 +18,10 @@
     </div>
 
     <div class="workshops-grid">
-        <!-- Pinned / always-reservable at the top -->
-        @foreach (var p in Model.PinnedWorkshops)
+        @foreach (var p in Model.ReservableWorkshops)
         {
-            <a href="/suradnja#upit" class="workshop-card">
+            var bookHref = p.BookingType == "email" ? $"mailto:{p.BookingValue}" : p.BookingValue ?? "/suradnja#upit";
+            <a href="@bookHref" @(p.BookingType == "email" ? "" : "target=\"_blank\" rel=\"noopener\"") class="workshop-card">
                 <div class="workshop-card-banner">
                     @if (!string.IsNullOrEmpty(p.BannerUrl))
                     {
@@ -35,16 +34,17 @@
                     <p class="workshop-card-desc">@p.Description</p>
                 </div>
                 <div class="workshop-card-footer">
-                    <span class="btn btn-outline btn-sm">Rezervirajte →</span>
+                    <span class="btn btn-outline btn-sm">Rezerviraj →</span>
                 </div>
             </a>
         }
 
-        <!-- Upcoming scheduled workshops -->
         @foreach (var w in Model.Workshops)
         {
             bool hasLogo = !string.IsNullOrEmpty(w.LogoUrl)
                            && w.LogoUrl != "/images/workshops/placeholder-logo.png";
+            var next = Model.NextOccurrenceByWorkshopId[w.Id];
+            var extraCount = Model.UpcomingOccurrenceCountByWorkshopId[w.Id] - 1;
             <a href="/workshops/@w.Slug" class="workshop-card @(hasLogo ? "has-logo" : "")">
                 <div class="workshop-card-banner">
                     @if (!string.IsNullOrEmpty(w.BannerUrl))
@@ -60,13 +60,16 @@
                 }
                 <div class="workshop-card-body">
                     <p class="workshop-card-date">
-                        @w.Date.ToString("dddd, MMMM d, yyyy", new System.Globalization.CultureInfo("en-US"))
+                        @(extraCount > 0 ? "Više termina" : next.Date.ToString("dddd, MMMM d, yyyy", new System.Globalization.CultureInfo("en-US")))
                     </p>
                     <h3 class="workshop-card-title">@w.Name</h3>
-                    <p class="workshop-card-time">
-                        @w.StartTime.ToString(@"hh\:mm")
-                        @(w.EndTime.HasValue ? " – " + w.EndTime.Value.ToString(@"hh\:mm") : "")
-                    </p>
+                    @if (extraCount == 0)
+                    {
+                        <p class="workshop-card-time">
+                            @next.StartTime.ToString(@"hh\:mm")
+                            @(next.EndTime.HasValue ? " – " + next.EndTime.Value.ToString(@"hh\:mm") : "")
+                        </p>
+                    }
                     <p class="workshop-card-desc">@w.Description</p>
                 </div>
                 <div class="workshop-card-footer">
@@ -75,7 +78,7 @@
             </a>
         }
 
-        @if (!Model.Workshops.Any() && !Model.PinnedWorkshops.Any())
+        @if (!Model.Workshops.Any() && !Model.ReservableWorkshops.Any())
         {
             <div class="workshops-empty">
                 <p>Trenutno nema nadolazećih radionica.<br>
