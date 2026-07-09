@@ -1667,7 +1667,7 @@ public class WorkshopsIndexModel : PageModel
         @foreach (var p in Model.ReservableWorkshops)
         {
             var bookHref = p.BookingType == "email" ? $"mailto:{p.BookingValue}" : p.BookingValue ?? "/suradnja#upit";
-            <a href="@bookHref" @(p.BookingType == "email" ? "" : "target=\"_blank\" rel=\"noopener\"") class="workshop-card">
+            <a href="@bookHref" target="@(p.BookingType == "email" ? null : "_blank")" rel="@(p.BookingType == "email" ? null : "noopener")" class="workshop-card">
                 <div class="workshop-card-banner">
                     @if (!string.IsNullOrEmpty(p.BannerUrl))
                     {
@@ -1945,7 +1945,7 @@ else
                     @if (w.IsReservable)
                     {
                         var bookHref = w.BookingType == "email" ? $"mailto:{w.BookingValue}" : w.BookingValue ?? "/suradnja#upit";
-                        <a href="@bookHref" @(w.BookingType == "email" ? "" : "target=\"_blank\" rel=\"noopener\"") class="btn btn-primary">
+                        <a href="@bookHref" target="@(w.BookingType == "email" ? null : "_blank")" rel="@(w.BookingType == "email" ? null : "noopener")" class="btn btn-primary">
                             Rezerviraj →
                         </a>
                     }
@@ -1982,7 +1982,7 @@ else
                                 @if (!string.IsNullOrEmpty(w.HostInstagram))
                                 {
                                     <a href="@w.HostInstagram" target="_blank" rel="noopener" aria-label="Instagram" class="icon-link">
-                                        <svg viewBox="0 0 24 24" width="18" height="18"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.5" cy="6.5" r="1.2"/></svg>
+                                        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><rect x="2" y="2" width="20" height="20" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.5" cy="6.5" r="1.2"/></svg>
                                     </a>
                                 }
                                 @if (!string.IsNullOrEmpty(w.HostWebsite))
@@ -2228,7 +2228,7 @@ Edit 2a — replace the "Upcoming Workshops" section (lines 57–110) to iterate
             @foreach (var p in Model.ReservableWorkshops)
             {
                 var bookHref = p.BookingType == "email" ? $"mailto:{p.BookingValue}" : p.BookingValue ?? "/suradnja#upit";
-                <a href="@bookHref" @(p.BookingType == "email" ? "" : "target=\"_blank\" rel=\"noopener\"") class="workshop-card">
+                <a href="@bookHref" target="@(p.BookingType == "email" ? null : "_blank")" rel="@(p.BookingType == "email" ? null : "noopener")" class="workshop-card">
                     <div class="workshop-card-banner">
                         @if (!string.IsNullOrEmpty(p.BannerUrl))
                         {
@@ -2358,7 +2358,7 @@ Find:
 ```
 Replace with:
 ```html
-            <div class="footer-social" style="display:flex;gap:14px;">
+            <div class="footer-social" style="display:flex;flex-direction:row;gap:14px;">
                 <a href="https://www.instagram.com/workshop.zagreb/" target="_blank" rel="noopener" aria-label="Instagram" class="icon-link">
                     <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><rect x="2" y="2" width="20" height="20" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.5" cy="6.5" r="1.2"/></svg>
                 </a>
