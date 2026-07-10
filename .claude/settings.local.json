@@ -4,28 +4,7 @@
       "Bash(dotnet build *)",
       "Bash(dir wwwroot *)",
       "Bash(ls .claude/launch.json)",
-      "Bash(cat .claude/launch.json)",
-      "Bash(ls *.db)",
-      "Bash(ls wwwroot/*.db)",
-      "Bash(sqlite3 workshop.db \"SELECT * FROM SeedFlags;\")",
-      "Bash(sqlite3 workshop.db \"SELECT Id, Name, Slug, IsReservable FROM Workshops WHERE IsReservable=1;\")",
-      "Bash(curl -s http://localhost:5299/workshops/rodendanska-radionica)",
-      "Bash(taskkill //F //IM dotnet.exe //T)",
-      "Bash(git add *)",
-      "Bash(git commit -m ' *)",
-      "Bash(git fetch *)",
-      "Bash(git merge *)",
-      "Bash(tasklist //FI \"IMAGENAME eq WorkshopZagreb.exe\" //FI \"PID eq 18060\")",
-      "Bash(tasklist //FI \"IMAGENAME eq dotnet.exe\")",
-      "Bash(taskkill //F //PID 18060)",
-      "Bash(cat appsettings.Development.json)",
-      "Bash(cat appsettings.json)",
-      "Bash(tasklist //FI \"IMAGENAME eq WorkshopZagreb.exe\")",
-      "Bash(curl -s -o /dev/null -w \"home:%{http_code}\\\\n\" http://localhost:5260/)",
-      "Bash(curl -s -o /dev/null -w \"admin:%{http_code}\\\\n\" http://localhost:5260/admin)",
-      "Bash(curl -s -c /tmp/cookies.txt http://localhost:5260/admin -o /tmp/loginpage.html -w \"loginpage:%{http_code}\\\\n\")",
-      "Read(//tmp/**)",
-      "Bash(curl -s -L -c /tmp/cookies.txt http://localhost:5260/admin -o /tmp/loginpage.html -w \"final:%{http_code} url:%{url_effective}\\\\n\")"
+      "Bash(cat .claude/launch.json)"
     ]
   }
 }
