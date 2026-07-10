@@ -4,6 +4,11 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <!-- Lets `dotnet user-secrets` store a local dev Admin:PasswordHash outside
+         the repo, so it's never confused with (or overwrites) the real
+         appsettings.json credential. ASP.NET Core loads user secrets
+         automatically in Development — no Program.cs change needed. -->
+    <UserSecretsId>b8f5f3f0-6a8f-4b1a-9e02-workshopzagreb-dev</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
