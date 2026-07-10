@@ -9,6 +9,18 @@ var builder = WebApplication.CreateBuilder(args);
 // Razor Pages: every .cshtml file in /Pages becomes a routable page automatically
 builder.Services.AddRazorPages();
 
+// This project has <Nullable>enable</Nullable>, which by default makes ASP.NET Core
+// treat every non-nullable `string` bound property (e.g. WorkshopInputModel.EmailSubject,
+// .BookingValue) as implicitly [Required] — even ones that are legitimately optional and
+// never populated by a given form. That silently failed ModelState.IsValid on every admin
+// workshop edit (no error was ever rendered, so it just looked like Save did nothing).
+// Validation in this app is handled explicitly instead (HTML `required` + manual
+// ModelState.AddModelError calls in the page handlers), so this implicit behavior is unwanted.
+builder.Services.Configure<Microsoft.AspNetCore.Mvc.MvcOptions>(options =>
+{
+    options.SuppressImplicitRequiredAttributeForNonNullableReferenceTypes = true;
+});
+
 // SQLite: path is absolute so it works both locally and on Azure App Service.
 // On Azure, "Run From Package" mounts the app folder read-only and replaces it
 // on every deploy, so the db file CANNOT live there or it resets each push

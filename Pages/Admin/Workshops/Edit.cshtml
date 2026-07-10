@@ -24,6 +24,10 @@
 
 <form method="post" enctype="multipart/form-data" class="form-card">
     <input type="hidden" name="Input.Id" value="@Model.Input.Id" />
+    <!-- Round-trip these so a validation-error re-render doesn't lose track of
+         already-uploaded files and wrongly mark Banner as required again. -->
+    <input type="hidden" name="Input.ExistingBannerUrl" value="@Model.Input.ExistingBannerUrl" />
+    <input type="hidden" name="Input.ExistingLogoUrl" value="@Model.Input.ExistingLogoUrl" />
 
     <p class="form-section-title">Osnovni podaci</p>
 
@@ -35,10 +39,17 @@
 
     <div class="form-group">
         <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
-            <input type="hidden" name="Input.IsReservable" value="false" />
+            <!--
+                Checkbox must come BEFORE its hidden false-fallback in source order.
+                When checked, the browser submits both "true" (checkbox) and "false"
+                (hidden) for this name; ASP.NET Core's model binder takes the FIRST
+                submitted value for a repeated key. Hidden-before-checkbox meant the
+                bound value was always "false", even when the box was visibly checked.
+            -->
             <input type="checkbox" id="chk-reservable" name="Input.IsReservable" value="true"
                    @(Model.Input.IsReservable ? "checked" : "") style="width:16px;height:16px;"
                    onchange="toggleReservable(this.checked)" />
+            <input type="hidden" name="Input.IsReservable" value="false" />
             <span class="form-label" style="margin:0;">Reservable (rezervira se za grupu, bez specifičnog datuma)</span>
         </label>
     </div>
@@ -199,9 +210,9 @@
         <p class="form-section-title">Obavijesti pretplatnike</p>
         <div class="form-group">
             <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
-                <input type="hidden" name="Input.NotifySubscribers" value="false" />
                 <input type="checkbox" id="chk-notify" name="Input.NotifySubscribers" value="true"
                        style="width:16px;height:16px;" onchange="document.getElementById('notify-fields').style.display = this.checked ? '' : 'none'" />
+                <input type="hidden" name="Input.NotifySubscribers" value="false" />
                 <span class="form-label" style="margin:0;">Pošalji email svim pretplatnicima</span>
             </label>
         </div>
