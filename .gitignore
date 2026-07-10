@@ -22,3 +22,6 @@ appsettings.*.local.json
 # OS
 .DS_Store
 Thumbs.db
+
+# Claude Code worktrees (nested git checkouts — must never be staged as gitlinks)
+.claude/worktrees/
