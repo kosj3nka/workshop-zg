@@ -196,16 +196,78 @@
                 {
                     <div style="position:relative;">
                         <img src="@photo.Url" alt="" style="height:80px; width:80px; object-fit:cover;" />
-                        <form method="post" asp-page-handler="DeletePhoto" asp-route-photoId="@photo.Id"
-                              style="position:absolute; top:-6px; right:-6px;" onsubmit="return confirm('Delete this photo?')">
-                            <button type="submit" style="background:#DC2626; color:white; border:none; border-radius:50%; width:20px; height:20px; font-size:11px; cursor:pointer; line-height:1;">✕</button>
-                        </form>
+                        <!--
+                            Nesting a <form> here (inside the outer "form-card" form) is invalid
+                            HTML — browsers drop the nested <form> start tag but still act on its
+                            </form> end tag, which closes the OUTER form early. That silently
+                            detached the "Spremi promjene" button from any form the moment a
+                            workshop had even one existing photo. Using the HTML5 form="" attribute
+                            instead lets this button submit a real, separate <form> declared after
+                            the outer form closes (see below), with no nesting involved.
+                        -->
+                        <button type="submit" form="delete-photo-@photo.Id"
+                                onclick="return confirm('Delete this photo?')"
+                                style="position:absolute; top:-6px; right:-6px; background:#DC2626; color:white; border:none; border-radius:50%; width:20px; height:20px; font-size:11px; cursor:pointer; line-height:1;">✕</button>
                     </div>
                 }
             </div>
         }
-        <input type="file" name="PhotoFiles" class="form-control" accept="image/png,image/jpeg,image/webp" multiple />
+        <!--
+            Re-opening the file picker on a plain <input type="file" multiple> REPLACES
+            the previous selection rather than adding to it, so picking files a second
+            time silently dropped the first batch before the form was even submitted.
+            This keeps its own running list in JS (synced onto the input via
+            DataTransfer) so multiple picks accumulate, with previews and an X to drop
+            any one of them before saving.
+        -->
+        <div id="pending-photos-preview" style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:12px;"></div>
+        <input type="file" id="photo-files-input" name="PhotoFiles" class="form-control" accept="image/png,image/jpeg,image/webp" multiple />
     </div>
+
+    <script>
+    (function () {
+        var input = document.getElementById('photo-files-input');
+        var preview = document.getElementById('pending-photos-preview');
+        var staged = [];
+
+        function sync() {
+            var dt = new DataTransfer();
+            staged.forEach(function (file) { dt.items.add(file); });
+            input.files = dt.files;
+            render();
+        }
+
+        function render() {
+            preview.innerHTML = '';
+            staged.forEach(function (file, index) {
+                var wrap = document.createElement('div');
+                wrap.style.position = 'relative';
+
+                var img = document.createElement('img');
+                img.src = URL.createObjectURL(file);
+                img.style.cssText = 'height:80px;width:80px;object-fit:cover;';
+                wrap.appendChild(img);
+
+                var btn = document.createElement('button');
+                btn.type = 'button';
+                btn.textContent = '✕';
+                btn.style.cssText = 'position:absolute;top:-6px;right:-6px;background:#DC2626;color:white;border:none;border-radius:50%;width:20px;height:20px;font-size:11px;cursor:pointer;line-height:1;';
+                btn.onclick = function () {
+                    staged.splice(index, 1);
+                    sync();
+                };
+                wrap.appendChild(btn);
+
+                preview.appendChild(wrap);
+            });
+        }
+
+        input.addEventListener('change', function () {
+            Array.prototype.forEach.call(input.files, function (file) { staged.push(file); });
+            sync();
+        });
+    })();
+    </script>
 
     @if (isNew)
     {
@@ -240,6 +302,11 @@
         <a href="/admin" class="btn btn-outline">Odustani</a>
     </div>
 </form>
+
+@foreach (var photo in Model.ExistingPhotos)
+{
+    <form id="delete-photo-@photo.Id" method="post" asp-page-handler="DeletePhoto" asp-route-photoId="@photo.Id" style="display:none;"></form>
+}
 
 @if (!isNew && !Model.Input.IsReservable)
 {
