@@ -59,6 +59,17 @@ h1, h2, h3 { font-family: var(--font-serif); line-height: 1.2; color: var(--espr
 .btn-danger   { background: #FEE2E2; color: #DC2626; border: 1px solid #FECACA; }
 .btn-danger:hover { background: #DC2626; color: white; border-color: #DC2626; }
 
+/* Icon-only delete button (trash can) — same red as .btn-danger, used
+   wherever a destructive action doesn't need a text label. */
+.btn-icon-danger {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 30px; height: 30px; flex-shrink: 0;
+    background: #FEE2E2; color: #DC2626; border: 1px solid #FECACA; border-radius: 6px;
+    cursor: pointer; transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.btn-icon-danger:hover { background: #DC2626; color: white; border-color: #DC2626; }
+.btn-icon-danger svg { width: 16px; height: 16px; }
+
 /* ----------------------------------------------------------------
    NAVBAR
 ---------------------------------------------------------------- */
