@@ -124,11 +124,19 @@ else
 
                 @if (!string.IsNullOrEmpty(w.InstagramPostUrl))
                 {
+                    var igEmbedUrl = InstagramEmbedUrl(w.InstagramPostUrl);
                     <div style="margin-top:40px;">
                         <p style="font-size:0.78rem;opacity:0.5;margin-bottom:12px;text-transform:uppercase;letter-spacing:0.1em;">Instagram post</p>
-                        <a href="@w.InstagramPostUrl" target="_blank" rel="noopener" class="btn btn-outline btn-sm">
-                            View on Instagram ↗
-                        </a>
+                        @if (igEmbedUrl != null)
+                        {
+                            <iframe src="@igEmbedUrl" width="400" height="620" style="max-width:100%;border:none;"
+                                    scrolling="no" allowtransparency="true" loading="lazy" title="Instagram post — @w.Name"></iframe>
+                        }
+                        <p style="margin-top:12px;">
+                            <a href="@w.InstagramPostUrl" target="_blank" rel="noopener" class="btn btn-outline btn-sm">
+                                View on Instagram ↗
+                            </a>
+                        </p>
                     </div>
                 }
 
@@ -207,4 +215,18 @@ else
 
         </div>
     </article>
+}
+
+@functions {
+    // Only /p/, /reel/ and /tv/ permalinks can be embedded this way — a profile
+    // link (e.g. instagram.com/workshop.zagreb) has no post to embed, so those
+    // fall back to a plain link instead of a broken iframe.
+    private static string? InstagramEmbedUrl(string url)
+    {
+        var match = System.Text.RegularExpressions.Regex.Match(
+            url, @"instagram\.com/(p|reel|tv)/([^/?]+)", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+        return match.Success
+            ? $"https://www.instagram.com/{match.Groups[1].Value}/{match.Groups[2].Value}/embed/captioned/"
+            : null;
+    }
 }
