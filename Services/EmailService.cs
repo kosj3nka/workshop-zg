@@ -59,7 +59,7 @@ public class EmailService : IEmailService
         var date    = occurrence.Date.ToString("dd. MM. yyyy");
         var time    = occurrence.StartTime.ToString(@"hh\:mm");
         var endTime = occurrence.EndTime.HasValue ? $" – {occurrence.EndTime.Value:hh\\:mm}" : "";
-        var price   = workshop.Price.HasValue ? $"{workshop.Price:0} €" : "Besplatno";
+        var price   = !string.IsNullOrEmpty(workshop.Price) ? workshop.Price : "Besplatno";
         var maxPax  = workshop.MaxParticipants.HasValue
             ? $"<tr><td style='padding:5px 0;color:#888;font-size:0.85rem;width:100px;'>Mjesta</td><td style='font-weight:500;'>max {workshop.MaxParticipants}</td></tr>"
             : "";

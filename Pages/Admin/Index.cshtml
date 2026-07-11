@@ -62,7 +62,7 @@
                             <h3>@w.Name</h3>
                             <p>
                                 @next.Date.ToString("dd. MM. yyyy") u @next.StartTime.ToString(@"hh\:mm")
-                                @(w.Price.HasValue ? $" · {w.Price:0} €" : " · Besplatno")
+                                @(!string.IsNullOrEmpty(w.Price) ? $" · {w.Price}" : " · Besplatno")
                                 @(extraCount > 0 ? $" · +{extraCount} termina" : "")
                             </p>
                         </div>
@@ -106,7 +106,7 @@
                         }
                         <div class="admin-list-item-info">
                             <h3>@w.Name</h3>
-                            <p>@(w.Price.HasValue ? $"{w.Price:0} €" : "Besplatno")</p>
+                            <p>@(!string.IsNullOrEmpty(w.Price) ? w.Price : "Besplatno")</p>
                         </div>
                     </div>
                     <div class="admin-list-item-actions">
@@ -146,7 +146,7 @@
                         }
                         <div class="admin-list-item-info">
                             <h3>@w.Name</h3>
-                            <p>@(w.Price.HasValue ? $"od {w.Price:0} €" : "Cijena po upitu") @(w.MaxParticipants.HasValue ? $" · max {w.MaxParticipants}" : "")</p>
+                            <p>@(!string.IsNullOrEmpty(w.Price) ? w.Price : "Cijena po upitu") @(w.MaxParticipants.HasValue ? $" · max {w.MaxParticipants}" : "")</p>
                         </div>
                     </div>
                     <div class="admin-list-item-actions">

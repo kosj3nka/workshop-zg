@@ -16,7 +16,8 @@ public class Workshop
     public string? HostName { get; set; }
     public string? HostInstagram { get; set; }
     public string? HostWebsite { get; set; }
-    public decimal? Price { get; set; }
+    // Free text, not a number — lets admins enter "25 €", "20-35 €", "Po dogovoru", etc.
+    public string? Price { get; set; }
     public int? MaxParticipants { get; set; }
 
     // Slug is the URL-friendly version of the name: "Watercolour Basics" -> "watercolour-basics"

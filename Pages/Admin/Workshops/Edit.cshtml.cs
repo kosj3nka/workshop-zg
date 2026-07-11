@@ -340,7 +340,7 @@ public class WorkshopInputModel
     public string BookingType { get; set; } = "webpage";
     public string BookingValue { get; set; } = "";
     public string Description { get; set; } = "";
-    public decimal? Price { get; set; }
+    public string? Price { get; set; }
     public int? MaxParticipants { get; set; }
     public string InstagramPostUrl { get; set; } = "";
     public string? HostName { get; set; }

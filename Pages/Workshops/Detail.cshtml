@@ -20,6 +20,13 @@
     var _end   = _endDt.ToString("yyyy-MM-ddTHH:mm:ss") + _tz;
     string J(string? s) => JsonSerializer.Serialize(s ?? "");
 
+    // Price is free text now ("20-35 €", "Po dogovoru", ...) — schema.org's Offer.price
+    // needs a plain number, so only emit the offers block when it parses as one.
+    decimal? _numericPrice = decimal.TryParse(
+        (_w.Price ?? "").Replace("€", "").Trim(),
+        System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.InvariantCulture, out var _p)
+        ? _p : null;
+
     <script type="application/ld+json">
     {
       "@@context": "https://schema.org",
@@ -47,10 +54,10 @@
         "@@type": "Organization",
         "name": "Workshop Zagreb",
         "url": "https://workshopzagreb.com"
-      }@((_w.Price.HasValue && !string.IsNullOrEmpty(_occ.EntrioUrl)) ? Html.Raw($@",
+      }@((_numericPrice.HasValue && !string.IsNullOrEmpty(_occ.EntrioUrl)) ? Html.Raw($@",
       ""offers"": {{
         ""@@type"": ""Offer"",
-        ""price"": ""{_w.Price:0}"",
+        ""price"": ""{_numericPrice:0}"",
         ""priceCurrency"": ""EUR"",
         ""availability"": ""https://schema.org/InStock"",
         ""url"": {J(_occ.EntrioUrl)}
@@ -138,7 +145,7 @@ else
 
             <aside class="workshop-sidebar">
                 <div class="sidebar-card">
-                    <p class="sidebar-price">@(w.Price.HasValue ? $"{w.Price:0} €" : "Free")</p>
+                    <p class="sidebar-price">@(!string.IsNullOrEmpty(w.Price) ? w.Price : "Free")</p>
                     <p class="sidebar-seats">
                         @(w.MaxParticipants.HasValue ? $"Max {w.MaxParticipants} participants" : "Open registration")
                     </p>
@@ -157,7 +164,7 @@ else
                             + Add to Google Calendar
                         </a>
 
-                        if (w.Price.HasValue)
+                        if (!string.IsNullOrEmpty(w.Price))
                         {
                             if (!string.IsNullOrEmpty(nextOcc.EntrioUrl))
                             {
