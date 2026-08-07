@@ -166,7 +166,8 @@ public class WorkshopEditModel : PageModel
                     ? $"Nova radionica! - {workshop.Name}"
                     : Input.EmailSubject;
                 var newSubs = await ActiveSubscribersAsync();
-                _ = _email.SendWorkshopAnnouncementAsync(workshop, firstOccurrence, newSubs, subject);
+                var result = await _email.SendWorkshopAnnouncementAsync(workshop, firstOccurrence, newSubs, subject);
+                SetEmailResultFlash(result);
             }
         }
         else
@@ -318,6 +319,25 @@ public class WorkshopEditModel : PageModel
         _db.Subscribers
             .Where(s => s.ConfirmedAt != null && s.UnsubscribedAt == null)
             .ToListAsync();
+
+    private void SetEmailResultFlash(EmailBatchResult result)
+    {
+        if (!result.SmtpConfigured)
+        {
+            TempData["FlashType"] = "error";
+            TempData["Flash"] = "Slanje nije uspjelo — provjeri email postavke.";
+        }
+        else if (result.Failed > 0)
+        {
+            TempData["FlashType"] = "warning";
+            TempData["Flash"] = $"Email poslan na {result.Sent} pretplatnika, {result.Failed} nije uspjelo.";
+        }
+        else if (result.Sent > 0)
+        {
+            TempData["FlashType"] = "success";
+            TempData["Flash"] = $"Email poslan na {result.Sent} pretplatnika.";
+        }
+    }
 
     private async Task<string> GenerateUniqueSlugAsync(string name)
     {
