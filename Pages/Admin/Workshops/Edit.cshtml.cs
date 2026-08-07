@@ -275,8 +275,28 @@ public class WorkshopEditModel : PageModel
     public async Task<IActionResult> OnPostUnarchiveAsync(int id)
     {
         var auth = CheckAuth(); if (auth != null) return auth;
-        var workshop = await _db.Workshops.FindAsync(id);
-        if (workshop != null) { workshop.IsArchived = false; await _db.SaveChangesAsync(); }
+
+        var workshop = await _db.Workshops.Include(w => w.Occurrences).FirstOrDefaultAsync(w => w.Id == id);
+        if (workshop == null) return RedirectToPage("/Admin/Index");
+
+        var futureOccurrence = workshop.Occurrences.Where(o => o.Date >= DateTime.Today).OrderBy(o => o.Date).FirstOrDefault();
+        var canUnarchive = workshop.IsReservable || futureOccurrence != null;
+
+        if (!canUnarchive)
+        {
+            TempData["FlashType"] = "warning";
+            TempData["Flash"] = "Radionica ima samo prošle datume — dodaj budući datum prije nego je vratiš iz arhive.";
+            return RedirectToPage(new { action = "edit", id });
+        }
+
+        workshop.IsArchived = false;
+        await _db.SaveChangesAsync();
+
+        var subject = $"Radionica je ponovno dostupna: {workshop.Name} — Workshop Zagreb";
+        var subs = await ActiveSubscribersAsync();
+        var result = await _email.SendWorkshopAnnouncementAsync(workshop, futureOccurrence, subs, subject, "Ponovno dostupno");
+        SetEmailResultFlash(result);
+
         return RedirectToPage(new { action = "edit", id });
     }
 
