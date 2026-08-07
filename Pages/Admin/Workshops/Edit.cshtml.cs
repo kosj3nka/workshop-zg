@@ -39,6 +39,7 @@ public class WorkshopEditModel : PageModel
     public List<WorkshopOccurrence> Occurrences { get; set; } = new();
     public bool IsNew { get; set; }
     public bool IsArchivedWorkshop { get; set; }
+    public bool CanUnarchiveDirectly { get; set; }
 
     private IActionResult? CheckAuth()
     {
@@ -82,6 +83,7 @@ public class WorkshopEditModel : PageModel
             ExistingPhotos = workshop.Photos.OrderBy(p => p.Order).ToList();
             Occurrences = workshop.Occurrences.OrderBy(o => o.Date).ToList();
             IsArchivedWorkshop = workshop.IsArchived;
+            CanUnarchiveDirectly = workshop.IsReservable || workshop.Occurrences.Any(o => o.Date >= DateTime.Today);
         }
         else
         {

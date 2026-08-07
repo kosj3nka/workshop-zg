@@ -16,9 +16,16 @@
 {
     <div class="login-error" style="background:#FEF9EC; color:#92610A; border-left:4px solid #F6C84B; margin-bottom:24px;">
         Ova radionica je arhivirana.
-        <form method="post" asp-page-handler="Unarchive" asp-route-id="@Model.Input.Id" style="display:inline;">
-            <button type="submit" class="btn btn-outline btn-sm" style="margin-left:8px;">Vrati iz arhive</button>
-        </form>
+        @if (Model.CanUnarchiveDirectly)
+        {
+            <form method="post" asp-page-handler="Unarchive" asp-route-id="@Model.Input.Id" style="display:inline;">
+                <button type="submit" class="btn btn-outline btn-sm" style="margin-left:8px;">Vrati iz arhive</button>
+            </form>
+        }
+        else
+        {
+            <span>Dodaj budući datum ispod kako bi radionica postala ponovno vidljiva.</span>
+        }
     </div>
 }
 
