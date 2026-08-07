@@ -42,6 +42,20 @@
     </div>
 
     <div class="admin-container">
+        @{
+            var flash = TempData["Flash"] as string;
+            var flashType = TempData["FlashType"] as string ?? "success";
+            var flashStyle = flashType switch
+            {
+                "error"   => "background:#FEE2E2; color:#DC2626; border-left:4px solid #DC2626;",
+                "warning" => "background:#FEF9EC; color:#92610A; border-left:4px solid #F6C84B;",
+                _         => "background:#EAF7EE; color:#1E7B3E; border-left:4px solid #34C471;",
+            };
+        }
+        @if (!string.IsNullOrEmpty(flash))
+        {
+            <div class="login-error" style="@flashStyle margin-bottom:24px;">@flash</div>
+        }
         @RenderBody()
     </div>
 
