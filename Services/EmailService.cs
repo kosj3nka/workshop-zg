@@ -9,9 +9,11 @@ namespace WorkshopZagreb.Services;
 public interface IEmailService
 {
     Task SendConfirmationAsync(string toEmail, string unsubscribeToken);
-    Task SendWorkshopAnnouncementAsync(Workshop workshop, WorkshopOccurrence occurrence, IList<Subscriber> subscribers, string? subject = null);
+    Task<EmailBatchResult> SendWorkshopAnnouncementAsync(Workshop workshop, WorkshopOccurrence? occurrence, IList<Subscriber> subscribers, string? subject = null, string kicker = "Nova radionica");
     Task SendInquiryAsync(InquiryInput input);
 }
+
+public record EmailBatchResult(int Sent, int Failed, bool SmtpConfigured);
 
 public class EmailService : IEmailService
 {
@@ -52,13 +54,21 @@ public class EmailService : IEmailService
         await SendOneAsync(toEmail, "Dobrodošli u Workshop Zagreb newsletter!", html);
     }
 
-    public async Task SendWorkshopAnnouncementAsync(Workshop workshop, WorkshopOccurrence occurrence, IList<Subscriber> subscribers, string? subject = null)
+    public async Task<EmailBatchResult> SendWorkshopAnnouncementAsync(Workshop workshop, WorkshopOccurrence? occurrence, IList<Subscriber> subscribers, string? subject = null, string kicker = "Nova radionica")
     {
-        if (!subscribers.Any()) return;
+        if (!subscribers.Any()) return new EmailBatchResult(0, 0, true);
 
-        var date    = occurrence.Date.ToString("dd. MM. yyyy");
-        var time    = occurrence.StartTime.ToString(@"hh\:mm");
-        var endTime = occurrence.EndTime.HasValue ? $" – {occurrence.EndTime.Value:hh\\:mm}" : "";
+        var smtp = _config.GetSection("Email:Smtp");
+        var host = smtp["Host"];
+        var from = smtp["From"];
+        var password = smtp["Password"];
+
+        if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(from) || string.IsNullOrEmpty(password))
+        {
+            _log.LogWarning("Email:Smtp not fully configured (missing Host/From/Password) — skipping announcement batch");
+            return new EmailBatchResult(0, subscribers.Count, false);
+        }
+
         var price   = !string.IsNullOrEmpty(workshop.Price) ? workshop.Price : "Besplatno";
         var maxPax  = workshop.MaxParticipants.HasValue
             ? $"<tr><td style='padding:5px 0;color:#888;font-size:0.85rem;width:100px;'>Mjesta</td><td style='font-weight:500;'>max {workshop.MaxParticipants}</td></tr>"
@@ -66,31 +76,67 @@ public class EmailService : IEmailService
         var hostRow = !string.IsNullOrEmpty(workshop.HostName)
             ? $"<tr><td style='padding:5px 0;color:#888;font-size:0.85rem;'>Voditelj</td><td style='font-weight:500;'>{workshop.HostName}</td></tr>"
             : "";
-        var ticketBtn = !string.IsNullOrEmpty(occurrence.EntrioUrl)
-            ? $"""<p style="margin:28px 0 8px;"><a href="{occurrence.EntrioUrl}" style="background:#c8a96e;color:#fff;padding:12px 32px;text-decoration:none;display:inline-block;font-size:0.9rem;font-weight:600;">Kupi ulaznicu</a></p>"""
-            : "";
+
+        string dateRows;
+        string actionBtn;
+        if (occurrence != null)
+        {
+            var date    = occurrence.Date.ToString("dd. MM. yyyy");
+            var time    = occurrence.StartTime.ToString(@"hh\:mm");
+            var endTime = occurrence.EndTime.HasValue ? $" – {occurrence.EndTime.Value:hh\\:mm}" : "";
+            dateRows = $"""
+                <tr><td style="padding:5px 0;color:#888;font-size:0.85rem;width:100px;">Datum</td><td style="font-weight:500;">{date}</td></tr>
+                <tr><td style="padding:5px 0;color:#888;font-size:0.85rem;">Vrijeme</td><td style="font-weight:500;">{time}{endTime}</td></tr>
+                <tr><td style="padding:5px 0;color:#888;font-size:0.85rem;">Cijena</td><td style="font-weight:500;">{price}</td></tr>
+                {maxPax}
+                {hostRow}
+                """;
+            actionBtn = !string.IsNullOrEmpty(occurrence.EntrioUrl)
+                ? $"""<p style="margin:28px 0 8px;"><a href="{occurrence.EntrioUrl}" style="background:#c8a96e;color:#fff;padding:12px 32px;text-decoration:none;display:inline-block;font-size:0.9rem;font-weight:600;">Kupi ulaznicu</a></p>"""
+                : "";
+        }
+        else
+        {
+            dateRows = $"""
+                <tr><td style="padding:5px 0;color:#888;font-size:0.85rem;width:100px;">Cijena</td><td style="font-weight:500;">{price}</td></tr>
+                {maxPax}
+                {hostRow}
+                """;
+            var bookHref = workshop.BookingType == "email" ? $"mailto:{workshop.BookingValue}" : (workshop.BookingValue ?? "/suradnja#upit");
+            actionBtn = $"""<p style="margin:28px 0 8px;"><a href="{bookHref}" style="background:#c8a96e;color:#fff;padding:12px 32px;text-decoration:none;display:inline-block;font-size:0.9rem;font-weight:600;">Rezerviraj</a></p>""";
+        }
+
         var calendarUrl = $"{SiteBase()}/#calendar";
         subject ??= $"Nova radionica: {workshop.Name} — Workshop Zagreb";
 
+        using var smtpClient = new SmtpClient();
+        try
+        {
+            await smtpClient.ConnectAsync(host, int.Parse(smtp["Port"] ?? "587"), SecureSocketOptions.StartTls);
+            await smtpClient.AuthenticateAsync(smtp["Username"], password);
+        }
+        catch (Exception ex)
+        {
+            _log.LogError(ex, "Failed to connect/authenticate SMTP for announcement batch");
+            return new EmailBatchResult(0, subscribers.Count, false);
+        }
+
+        int sent = 0, failed = 0;
         foreach (var sub in subscribers)
         {
             var unsub = UnsubscribeUrl(sub.Token);
             var html = $"""
                 <div style="font-family:Inter,Arial,sans-serif;max-width:540px;margin:0 auto;color:#1a1a1a;padding:32px 0;">
-                  <p style="font-size:0.72rem;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:#c8a96e;margin-bottom:8px;">Nova radionica</p>
+                  <p style="font-size:0.72rem;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:#c8a96e;margin-bottom:8px;">{kicker}</p>
                   <h1 style="font-family:Georgia,'Playfair Display',serif;font-size:1.9rem;line-height:1.2;margin:0 0 24px;">{workshop.Name}</h1>
 
                   <table style="width:100%;border-collapse:collapse;margin-bottom:28px;">
-                    <tr><td style="padding:5px 0;color:#888;font-size:0.85rem;width:100px;">Datum</td><td style="font-weight:500;">{date}</td></tr>
-                    <tr><td style="padding:5px 0;color:#888;font-size:0.85rem;">Vrijeme</td><td style="font-weight:500;">{time}{endTime}</td></tr>
-                    <tr><td style="padding:5px 0;color:#888;font-size:0.85rem;">Cijena</td><td style="font-weight:500;">{price}</td></tr>
-                    {maxPax}
-                    {hostRow}
+                    {dateRows}
                   </table>
 
                   <p style="line-height:1.75;margin-bottom:28px;">{workshop.Description}</p>
 
-                  {ticketBtn}
+                  {actionBtn}
                   <p style="margin-top:16px;">
                     <a href="{calendarUrl}" style="color:#c8a96e;font-size:0.9rem;">Pogledaj kalendar radionica →</a>
                   </p>
@@ -103,8 +149,25 @@ public class EmailService : IEmailService
                 </div>
                 """;
 
-            await SendOneAsync(sub.Email, subject, html);
+            try
+            {
+                var msg = new MimeMessage();
+                msg.From.Add(MailboxAddress.Parse(from));
+                msg.To.Add(MailboxAddress.Parse(sub.Email));
+                msg.Subject = subject;
+                msg.Body = new TextPart("html") { Text = html };
+                await smtpClient.SendAsync(msg);
+                sent++;
+            }
+            catch (Exception ex)
+            {
+                _log.LogError(ex, "Failed to send announcement to {To}", sub.Email);
+                failed++;
+            }
         }
+
+        await smtpClient.DisconnectAsync(true);
+        return new EmailBatchResult(sent, failed, true);
     }
 
     public async Task SendInquiryAsync(InquiryInput i)
@@ -138,7 +201,10 @@ public class EmailService : IEmailService
             _           => "Ostalo",
         };
 
-        var adminEmail = _config["Email:Smtp:Username"] ?? "info@workshopzagreb.hr";
+        // Deliberately derived from "From" rather than "Username" — the SMTP account that
+        // authenticates (e.g. an admin mailbox with Send-As rights) isn't necessarily the
+        // public inbox inquiries should land in.
+        var adminEmail = MailboxAddress.Parse(_config["Email:Smtp:From"] ?? "hello@workshopzagreb.com").Address;
         var subject    = $"[Workshop Zagreb] Novi upit: {typeLabel}";
         var html = $"""
             <div style="font-family:Inter,Arial,sans-serif;max-width:560px;margin:0 auto;color:#1a1a1a;padding:32px 0;">
@@ -189,6 +255,6 @@ public class EmailService : IEmailService
         }
     }
 
-    private string SiteBase() => _config["Email:SiteBaseUrl"]?.TrimEnd('/') ?? "https://workshopzagreb.hr";
+    private string SiteBase() => _config["Email:SiteBaseUrl"]?.TrimEnd('/') ?? "https://workshopzagreb.com";
     private string UnsubscribeUrl(string token) => $"{SiteBase()}/newsletter/unsubscribe?token={token}";
 }
