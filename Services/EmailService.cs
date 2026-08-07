@@ -102,7 +102,7 @@ public class EmailService : IEmailService
                 {maxPax}
                 {hostRow}
                 """;
-            var bookHref = workshop.BookingType == "email" ? $"mailto:{workshop.BookingValue}" : (workshop.BookingValue ?? "/suradnja#upit");
+            var bookHref = workshop.BookingType == "email" ? $"mailto:{workshop.BookingValue}" : (workshop.BookingValue != null ? workshop.BookingValue : $"{SiteBase()}/suradnja#upit");
             actionBtn = $"""<p style="margin:28px 0 8px;"><a href="{bookHref}" style="background:#c8a96e;color:#fff;padding:12px 32px;text-decoration:none;display:inline-block;font-size:0.9rem;font-weight:600;">Rezerviraj</a></p>""";
         }
 
@@ -201,10 +201,7 @@ public class EmailService : IEmailService
             _           => "Ostalo",
         };
 
-        // Deliberately derived from "From" rather than "Username" — the SMTP account that
-        // authenticates (e.g. an admin mailbox with Send-As rights) isn't necessarily the
-        // public inbox inquiries should land in.
-        var adminEmail = MailboxAddress.Parse(_config["Email:Smtp:From"] ?? "hello@workshopzagreb.com").Address;
+        var adminEmail = _config["Email:Smtp:Username"] ?? "info@workshopzagreb.hr";
         var subject    = $"[Workshop Zagreb] Novi upit: {typeLabel}";
         var html = $"""
             <div style="font-family:Inter,Arial,sans-serif;max-width:560px;margin:0 auto;color:#1a1a1a;padding:32px 0;">
@@ -255,6 +252,6 @@ public class EmailService : IEmailService
         }
     }
 
-    private string SiteBase() => _config["Email:SiteBaseUrl"]?.TrimEnd('/') ?? "https://workshopzagreb.com";
+    private string SiteBase() => _config["Email:SiteBaseUrl"]?.TrimEnd('/') ?? "https://workshopzagreb.hr";
     private string UnsubscribeUrl(string token) => $"{SiteBase()}/newsletter/unsubscribe?token={token}";
 }
