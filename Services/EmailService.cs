@@ -102,7 +102,21 @@ public class EmailService : IEmailService
                 {maxPax}
                 {hostRow}
                 """;
-            var bookHref = workshop.BookingType == "email" ? $"mailto:{workshop.BookingValue}" : (workshop.BookingValue != null ? workshop.BookingValue : $"{SiteBase()}/suradnja#upit");
+            string bookHref;
+            if (workshop.BookingType == "email")
+            {
+                bookHref = $"mailto:{workshop.BookingValue}";
+            }
+            else
+            {
+                var val = workshop.BookingValue;
+                if (string.IsNullOrWhiteSpace(val))
+                    bookHref = $"{SiteBase()}/suradnja#upit";
+                else if (val.StartsWith("http://") || val.StartsWith("https://"))
+                    bookHref = val;
+                else
+                    bookHref = $"{SiteBase()}{(val.StartsWith("/") ? "" : "/")}{val}";
+            }
             actionBtn = $"""<p style="margin:28px 0 8px;"><a href="{bookHref}" style="background:#c8a96e;color:#fff;padding:12px 32px;text-decoration:none;display:inline-block;font-size:0.9rem;font-weight:600;">Rezerviraj</a></p>""";
         }
 

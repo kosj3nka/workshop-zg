@@ -217,6 +217,9 @@ public class WorkshopEditModel : PageModel
         if (NewOccurrence.Date == default)
             return RedirectToPage(new { action = "edit", id = workshopId });
 
+        var hadFutureOccurrenceBefore = await _db.WorkshopOccurrences
+            .AnyAsync(o => o.WorkshopId == workshopId && o.Date >= DateTime.Today);
+
         var newOccurrence = new WorkshopOccurrence
         {
             WorkshopId = workshopId,
@@ -228,7 +231,7 @@ public class WorkshopEditModel : PageModel
         _db.WorkshopOccurrences.Add(newOccurrence);
         await _db.SaveChangesAsync();
 
-        await NotifyForOccurrenceChangeAsync(workshopId, newOccurrence, "Novi termin");
+        await NotifyForOccurrenceChangeAsync(workshopId, newOccurrence, "Novi termin", hadFutureOccurrenceBefore);
 
         return RedirectToPage(new { action = "edit", id = workshopId });
     }
@@ -244,6 +247,8 @@ public class WorkshopEditModel : PageModel
         if (occurrence != null)
         {
             var dateTimeChanged = occurrence.Date != occDate || occurrence.StartTime != occStartTime || occurrence.EndTime != occEndTime;
+            var hadFutureOccurrenceBefore = occurrence.Date >= DateTime.Today || await _db.WorkshopOccurrences
+                .AnyAsync(o => o.WorkshopId == workshopId && o.Id != occurrenceId && o.Date >= DateTime.Today);
 
             occurrence.Date = occDate;
             occurrence.StartTime = occStartTime;
@@ -252,7 +257,7 @@ public class WorkshopEditModel : PageModel
             await _db.SaveChangesAsync();
 
             if (dateTimeChanged)
-                await NotifyForOccurrenceChangeAsync(workshopId, occurrence, "Promjena termina");
+                await NotifyForOccurrenceChangeAsync(workshopId, occurrence, "Promjena termina", hadFutureOccurrenceBefore);
         }
 
         return RedirectToPage(new { action = "edit", id = workshopId });
@@ -286,6 +291,7 @@ public class WorkshopEditModel : PageModel
 
         var workshop = await _db.Workshops.Include(w => w.Occurrences).FirstOrDefaultAsync(w => w.Id == id);
         if (workshop == null) return RedirectToPage("/Admin/Index");
+        if (!workshop.IsArchived) return RedirectToPage(new { action = "edit", id });
 
         var futureOccurrence = workshop.Occurrences.Where(o => o.Date >= DateTime.Today).OrderBy(o => o.Date).FirstOrDefault();
         var canUnarchive = workshop.IsReservable || futureOccurrence != null;
@@ -353,7 +359,7 @@ public class WorkshopEditModel : PageModel
     // Called after an occurrence is added or its date/time actually changed. If the workshop
     // was archived and this occurrence gives it a future date, brings it back live and sends
     // the "back from archive" announcement instead of a plain date-change one.
-    private async Task NotifyForOccurrenceChangeAsync(int workshopId, WorkshopOccurrence occurrence, string liveKicker)
+    private async Task NotifyForOccurrenceChangeAsync(int workshopId, WorkshopOccurrence occurrence, string liveKicker, bool hadFutureOccurrenceBefore)
     {
         var workshop = await _db.Workshops.FindAsync(workshopId);
         if (workshop == null) return;
@@ -364,7 +370,7 @@ public class WorkshopEditModel : PageModel
         string subject;
         string kicker;
 
-        if (workshop.IsArchived && !workshop.IsReservable && hasFuture)
+        if (workshop.IsArchived && !workshop.IsReservable && !hadFutureOccurrenceBefore && hasFuture)
         {
             workshop.IsArchived = false;
             await _db.SaveChangesAsync();
