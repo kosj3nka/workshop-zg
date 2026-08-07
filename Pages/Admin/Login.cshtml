@@ -35,11 +35,30 @@
             </div>
             <div class="form-group">
                 <label class="form-label">Lozinka</label>
-                <input type="password" name="Password" class="form-control" autocomplete="current-password" required />
+                <div class="password-field-wrap">
+                    <input type="password" name="Password" id="password-input" class="form-control" autocomplete="current-password" required />
+                    <button type="button" class="password-toggle-btn" id="password-toggle" aria-label="Prikaži lozinku">
+                        <svg id="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;" aria-hidden="true">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                        </svg>
+                    </button>
+                </div>
             </div>
             <button type="submit" class="btn btn-primary" style="width:100%; margin-top:8px;">Prijava</button>
         </form>
     </div>
 </div>
+<script>
+document.getElementById('password-toggle').addEventListener('click', function () {
+    var input = document.getElementById('password-input');
+    var icon = document.getElementById('eye-icon');
+    var isHidden = input.type === 'password';
+    input.type = isHidden ? 'text' : 'password';
+    this.setAttribute('aria-label', isHidden ? 'Sakrij lozinku' : 'Prikaži lozinku');
+    icon.innerHTML = isHidden
+        ? '<path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a18.5 18.5 0 0 1 5.06-5.94M9.9 4.24A10.94 10.94 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>'
+        : '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+});
+</script>
 </body>
 </html>
