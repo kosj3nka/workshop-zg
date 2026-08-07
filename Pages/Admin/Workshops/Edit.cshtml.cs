@@ -217,15 +217,18 @@ public class WorkshopEditModel : PageModel
         if (NewOccurrence.Date == default)
             return RedirectToPage(new { action = "edit", id = workshopId });
 
-        _db.WorkshopOccurrences.Add(new WorkshopOccurrence
+        var newOccurrence = new WorkshopOccurrence
         {
             WorkshopId = workshopId,
             Date = NewOccurrence.Date,
             StartTime = NewOccurrence.StartTime,
             EndTime = NewOccurrence.EndTime,
             EntrioUrl = NewOccurrence.EntrioUrl,
-        });
+        };
+        _db.WorkshopOccurrences.Add(newOccurrence);
         await _db.SaveChangesAsync();
+
+        await NotifyForOccurrenceChangeAsync(workshopId, newOccurrence, "Novi termin");
 
         return RedirectToPage(new { action = "edit", id = workshopId });
     }
@@ -240,11 +243,16 @@ public class WorkshopEditModel : PageModel
         var occurrence = await _db.WorkshopOccurrences.FirstOrDefaultAsync(o => o.Id == occurrenceId && o.WorkshopId == workshopId);
         if (occurrence != null)
         {
+            var dateTimeChanged = occurrence.Date != occDate || occurrence.StartTime != occStartTime || occurrence.EndTime != occEndTime;
+
             occurrence.Date = occDate;
             occurrence.StartTime = occStartTime;
             occurrence.EndTime = occEndTime;
             occurrence.EntrioUrl = occEntrioUrl;
             await _db.SaveChangesAsync();
+
+            if (dateTimeChanged)
+                await NotifyForOccurrenceChangeAsync(workshopId, occurrence, "Promjena termina");
         }
 
         return RedirectToPage(new { action = "edit", id = workshopId });
@@ -341,6 +349,42 @@ public class WorkshopEditModel : PageModel
         _db.Subscribers
             .Where(s => s.ConfirmedAt != null && s.UnsubscribedAt == null)
             .ToListAsync();
+
+    // Called after an occurrence is added or its date/time actually changed. If the workshop
+    // was archived and this occurrence gives it a future date, brings it back live and sends
+    // the "back from archive" announcement instead of a plain date-change one.
+    private async Task NotifyForOccurrenceChangeAsync(int workshopId, WorkshopOccurrence occurrence, string liveKicker)
+    {
+        var workshop = await _db.Workshops.FindAsync(workshopId);
+        if (workshop == null) return;
+
+        var hasFuture = await _db.WorkshopOccurrences
+            .AnyAsync(o => o.WorkshopId == workshopId && o.Date >= DateTime.Today);
+
+        string subject;
+        string kicker;
+
+        if (workshop.IsArchived && !workshop.IsReservable && hasFuture)
+        {
+            workshop.IsArchived = false;
+            await _db.SaveChangesAsync();
+            subject = $"Radionica je ponovno dostupna: {workshop.Name} — Workshop Zagreb";
+            kicker = "Ponovno dostupno";
+        }
+        else if (!workshop.IsArchived)
+        {
+            subject = $"{liveKicker}: {workshop.Name} — Workshop Zagreb";
+            kicker = liveKicker;
+        }
+        else
+        {
+            return; // still archived, still no future date — nothing to announce
+        }
+
+        var subs = await ActiveSubscribersAsync();
+        var result = await _email.SendWorkshopAnnouncementAsync(workshop, occurrence, subs, subject, kicker);
+        SetEmailResultFlash(result);
+    }
 
     private void SetEmailResultFlash(EmailBatchResult result)
     {
