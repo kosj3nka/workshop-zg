@@ -5,6 +5,7 @@ using WorkshopZagreb.Data;
 using WorkshopZagreb.Models;
 using WorkshopZagreb.Services;
 using System.Text.Json;
+using System.Net.Mail;
 
 namespace WorkshopZagreb.Pages.Api;
 
@@ -31,6 +32,9 @@ public class SubscribeModel : PageModel
             return new JsonResult(new { ok = false });
 
         var email = payload.Email.Trim().ToLowerInvariant();
+        if (!MailAddress.TryCreate(email, out _))
+            return new JsonResult(new { ok = false });
+
         var existing = await _db.Subscribers.FirstOrDefaultAsync(s => s.Email == email);
         if (existing != null)
             return new JsonResult(new { ok = true });
