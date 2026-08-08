@@ -171,6 +171,20 @@ using (var scope = app.Services.CreateScope())
         catch { /* legacy columns don't exist on a fresh database — nothing to backfill */ }
     }
 
+    // Legacy Date/StartTime/EndTime/EntrioUrl columns on Workshops predate the occurrence-model
+    // split and are no longer written by any code path — every insert into Workshops now omits
+    // them, which throws "NOT NULL constraint failed: Workshops.Date" on any database that still
+    // has them (their data was already copied into WorkshopOccurrences by the backfill above).
+    // SQLite has supported DROP COLUMN since 3.35 (bundled by Microsoft.Data.Sqlite well past that).
+    try { db.Database.ExecuteSqlRaw("ALTER TABLE Workshops DROP COLUMN Date"); }
+    catch { /* column doesn't exist — safe to ignore */ }
+    try { db.Database.ExecuteSqlRaw("ALTER TABLE Workshops DROP COLUMN StartTime"); }
+    catch { /* column doesn't exist — safe to ignore */ }
+    try { db.Database.ExecuteSqlRaw("ALTER TABLE Workshops DROP COLUMN EndTime"); }
+    catch { /* column doesn't exist — safe to ignore */ }
+    try { db.Database.ExecuteSqlRaw("ALTER TABLE Workshops DROP COLUMN EntrioUrl"); }
+    catch { /* column doesn't exist — safe to ignore */ }
+
     // If a reservable workshop already exists (migrated from the old IsPinned data
     // via the backfill above, or seeded by a prior version of this app), mark the
     // seed as already-consumed so we don't try to insert a second workshop with the
