@@ -102,6 +102,10 @@ public class WorkshopEditModel : PageModel
         {
             ExistingPhotos = await _db.WorkshopPhotos.Where(p => p.WorkshopId == Input.Id).ToListAsync();
             Occurrences = await _db.WorkshopOccurrences.Where(o => o.WorkshopId == Input.Id).OrderBy(o => o.Date).ToListAsync();
+
+            var currentWorkshop = await _db.Workshops.FindAsync(Input.Id);
+            IsArchivedWorkshop = currentWorkshop?.IsArchived ?? false;
+            CanUnarchiveDirectly = (currentWorkshop?.IsReservable ?? false) || Occurrences.Any(o => o.Date >= DateTime.Today);
         }
 
         if (!ModelState.IsValid)

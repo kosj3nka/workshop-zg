@@ -21,7 +21,7 @@
             <form method="post" asp-page-handler="Unarchive" asp-route-id="@Model.Input.Id" style="display:inline;">
                 <input type="hidden" name="sendEmail" id="unarchive-send-email" value="true" />
                 <button type="submit" class="btn btn-outline btn-sm" style="margin-left:8px;"
-                        onclick="document.getElementById('unarchive-send-email').value = confirm('Poslati email pretplatnicima da je radionica ponovno dostupna?'); return true;">
+                        onclick="document.getElementById('unarchive-send-email').value = confirm('Poslati email pretplatnicima da je radionica ponovno dostupna? Radionica se vraća iz arhive u oba slučaja.'); return true;">
                     Vrati iz arhive
                 </button>
             </form>
@@ -87,7 +87,7 @@
                         @if (Model.IsArchivedWorkshop)
                         {
                             <button type="submit" form="occ-edit-@occ.Id" class="btn btn-outline btn-sm"
-                                    onclick="document.getElementById('occ-edit-@(occ.Id)-send-email').value = confirm('Ako ovaj datum vrati radionicu iz arhive, poslati email pretplatnicima?'); return true;">
+                                    onclick="document.getElementById('occ-edit-@(occ.Id)-send-email').value = confirm('Ako ovaj datum vrati radionicu iz arhive, poslati email pretplatnicima? Radionica se vraća iz arhive u oba slučaja.'); return true;">
                                 Spremi
                             </button>
                         }
@@ -131,7 +131,7 @@
                 @if (Model.IsArchivedWorkshop)
                 {
                     <button type="submit" id="add-occ-btn" form="occ-add" class="btn btn-primary btn-sm" disabled
-                            onclick="document.getElementById('occ-add-send-email').value = confirm('Ako ovaj datum vrati radionicu iz arhive, poslati email pretplatnicima?'); return true;">
+                            onclick="document.getElementById('occ-add-send-email').value = confirm('Ako ovaj datum vrati radionicu iz arhive, poslati email pretplatnicima? Radionica se vraća iz arhive u oba slučaja.'); return true;">
                         + Novi datum
                     </button>
                 }
