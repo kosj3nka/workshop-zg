@@ -48,7 +48,7 @@
             {
                 var next = Model.NextOccurrenceByWorkshopId[w.Id];
                 var extraCount = Model.UpcomingOccurrenceCountByWorkshopId[w.Id] - 1;
-                <div class="admin-list-item">
+                <div class="admin-list-item" onclick="location.href='/admin/workshops/edit/@w.Id'">
                     <div style="display:flex;align-items:center;gap:16px;flex:1;min-width:0;">
                         @if (!string.IsNullOrEmpty(w.BannerUrl))
                         {
@@ -67,10 +67,7 @@
                             </p>
                         </div>
                     </div>
-                    <div class="admin-list-item-actions">
-                        <a href="/admin/workshops/edit/@w.Id" class="btn-icon-edit" title="Uredi">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4Z"/></svg>
-                        </a>
+                    <div class="admin-list-item-actions" onclick="event.stopPropagation()">
                         <form method="post" asp-page-handler="Archive" asp-route-id="@w.Id"
                               onsubmit="return confirm('Archive @w.Name? It will move to the Arhiva tab.')">
                             <button type="submit" class="btn-icon-archive" title="Arhiviraj">
@@ -102,7 +99,7 @@
         <div class="admin-list">
             @foreach (var w in Model.ReservableWorkshops)
             {
-                <div class="admin-list-item">
+                <div class="admin-list-item" onclick="location.href='/admin/workshops/edit/@w.Id'">
                     <div style="display:flex;align-items:center;gap:16px;flex:1;min-width:0;">
                         @if (!string.IsNullOrEmpty(w.BannerUrl))
                         {
@@ -117,10 +114,7 @@
                             <p>@(!string.IsNullOrEmpty(w.Price) ? w.Price : "Cijena po upitu") @(w.MaxParticipants.HasValue ? $" · max {w.MaxParticipants}" : "")</p>
                         </div>
                     </div>
-                    <div class="admin-list-item-actions">
-                        <a href="/admin/workshops/edit/@w.Id" class="btn-icon-edit" title="Uredi">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4Z"/></svg>
-                        </a>
+                    <div class="admin-list-item-actions" onclick="event.stopPropagation()">
                         <form method="post" asp-page-handler="Archive" asp-route-id="@w.Id"
                               onsubmit="return confirm('Arhiviraj @w.Name? Premjestit će se u Arhiva karticu.')">
                             <button type="submit" class="btn-icon-archive" title="Arhiviraj">
@@ -150,7 +144,7 @@
         <div class="admin-list">
             @foreach (var w in Model.PastWorkshops)
             {
-                <div class="admin-list-item">
+                <div class="admin-list-item" onclick="location.href='/admin/workshops/edit/@w.Id'">
                     <div style="display:flex;align-items:center;gap:16px;flex:1;min-width:0;">
                         @if (!string.IsNullOrEmpty(w.BannerUrl))
                         {
@@ -165,10 +159,7 @@
                             <p>@(!string.IsNullOrEmpty(w.Price) ? w.Price : "Cijena po upitu")</p>
                         </div>
                     </div>
-                    <div class="admin-list-item-actions">
-                        <a href="/admin/workshops/edit/@w.Id" class="btn-icon-edit" title="Uredi">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4Z"/></svg>
-                        </a>
+                    <div class="admin-list-item-actions" onclick="event.stopPropagation()">
                         @if (w.IsReservable)
                         {
                             <form method="post" asp-page="/Admin/Workshops/Edit" asp-route-action="edit" asp-route-id="@w.Id"

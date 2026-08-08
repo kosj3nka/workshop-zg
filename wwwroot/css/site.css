@@ -62,16 +62,13 @@ h1, h2, h3 { font-family: var(--font-serif); line-height: 1.2; color: var(--espr
 /* Icon-only action buttons — edit / archive / unarchive / delete, all the
    same footprint so a row of admin-list actions reads as one consistent
    control instead of a mix of text buttons and icons. */
-.btn-icon-edit, .btn-icon-archive, .btn-icon-unarchive, .btn-icon-danger {
+.btn-icon-archive, .btn-icon-unarchive, .btn-icon-danger {
     display: inline-flex; align-items: center; justify-content: center;
     width: 30px; height: 30px; flex-shrink: 0;
     border: 1px solid transparent; border-radius: 6px;
     cursor: pointer; transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 }
-.btn-icon-edit svg, .btn-icon-archive svg, .btn-icon-unarchive svg, .btn-icon-danger svg { width: 16px; height: 16px; }
-
-.btn-icon-edit      { background: var(--cream); color: var(--espresso); border-color: var(--border); }
-.btn-icon-edit:hover      { background: var(--espresso); color: var(--cream); border-color: var(--espresso); }
+.btn-icon-archive svg, .btn-icon-unarchive svg, .btn-icon-danger svg { width: 16px; height: 16px; }
 
 .btn-icon-archive   { background: #FEF9EC; color: #92610A; border-color: #F6C84B; }
 .btn-icon-archive:hover   { background: #F6C84B; color: #4A3200; border-color: #F6C84B; }
@@ -536,7 +533,8 @@ textarea.form-control { resize: vertical; min-height: 140px; }
 .image-preview-box img { display: block; object-fit: cover; }
 
 .admin-list        { display: flex; flex-direction: column; gap: 12px; }
-.admin-list-item   { background: white; border-radius: 8px; padding: 20px 24px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 12px rgba(44,26,14,0.05); }
+.admin-list-item   { background: white; border-radius: 8px; padding: 20px 24px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 12px rgba(44,26,14,0.05); cursor: pointer; transition: box-shadow 0.15s ease; }
+.admin-list-item:hover { box-shadow: 0 4px 18px rgba(44,26,14,0.1); }
 .admin-list-item--archived { opacity: 0.55; }
 .admin-list-item-info h3 { font-size: 1rem; font-weight: 600; margin-bottom: 4px; }
 .admin-list-item-info p  { font-size: 0.8rem; opacity: 0.55; }
