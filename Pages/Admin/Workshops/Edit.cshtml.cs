@@ -210,7 +210,7 @@ public class WorkshopEditModel : PageModel
 
     // Adds one more date to an existing (non-reservable) workshop — this is the
     // "New date" feature: reuse the workshop's content, just pick a new date.
-    public async Task<IActionResult> OnPostAddOccurrenceAsync(int workshopId)
+    public async Task<IActionResult> OnPostAddOccurrenceAsync(int workshopId, bool sendEmail = true)
     {
         var auth = CheckAuth(); if (auth != null) return auth;
 
@@ -231,12 +231,12 @@ public class WorkshopEditModel : PageModel
         _db.WorkshopOccurrences.Add(newOccurrence);
         await _db.SaveChangesAsync();
 
-        await NotifyForOccurrenceChangeAsync(workshopId, newOccurrence, "Novi termin", hadFutureOccurrenceBefore);
+        await NotifyForOccurrenceChangeAsync(workshopId, newOccurrence, "Novi termin", hadFutureOccurrenceBefore, sendEmail);
 
         return RedirectToPage(new { action = "edit", id = workshopId });
     }
 
-    public async Task<IActionResult> OnPostUpdateOccurrenceAsync(int occurrenceId, int workshopId, DateTime occDate, TimeSpan occStartTime, TimeSpan? occEndTime, string? occEntrioUrl)
+    public async Task<IActionResult> OnPostUpdateOccurrenceAsync(int occurrenceId, int workshopId, DateTime occDate, TimeSpan occStartTime, TimeSpan? occEndTime, string? occEntrioUrl, bool sendEmail = true)
     {
         var auth = CheckAuth(); if (auth != null) return auth;
 
@@ -257,7 +257,7 @@ public class WorkshopEditModel : PageModel
             await _db.SaveChangesAsync();
 
             if (dateTimeChanged)
-                await NotifyForOccurrenceChangeAsync(workshopId, occurrence, "Promjena termina", hadFutureOccurrenceBefore);
+                await NotifyForOccurrenceChangeAsync(workshopId, occurrence, "Promjena termina", hadFutureOccurrenceBefore, sendEmail);
         }
 
         return RedirectToPage(new { action = "edit", id = workshopId });
@@ -367,7 +367,7 @@ public class WorkshopEditModel : PageModel
     // Called after an occurrence is added or its date/time actually changed. If the workshop
     // was archived and this occurrence gives it a future date, brings it back live and sends
     // the "back from archive" announcement instead of a plain date-change one.
-    private async Task NotifyForOccurrenceChangeAsync(int workshopId, WorkshopOccurrence occurrence, string liveKicker, bool hadFutureOccurrenceBefore)
+    private async Task NotifyForOccurrenceChangeAsync(int workshopId, WorkshopOccurrence occurrence, string liveKicker, bool hadFutureOccurrenceBefore, bool sendEmail = true)
     {
         var workshop = await _db.Workshops.FindAsync(workshopId);
         if (workshop == null) return;
@@ -382,6 +382,14 @@ public class WorkshopEditModel : PageModel
         {
             workshop.IsArchived = false;
             await _db.SaveChangesAsync();
+
+            if (!sendEmail)
+            {
+                TempData["FlashType"] = "success";
+                TempData["Flash"] = "Radionica je vraćena iz arhive.";
+                return;
+            }
+
             subject = $"Radionica je ponovno dostupna: {workshop.Name} — Workshop Zagreb";
             kicker = "Ponovno dostupno";
         }

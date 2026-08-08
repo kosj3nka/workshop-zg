@@ -84,7 +84,17 @@
                             <label class="form-label">Entrio URL</label>
                             <input type="url" form="occ-edit-@occ.Id" name="occEntrioUrl" value="@occ.EntrioUrl" class="form-control" placeholder="https://entrio.hr/event/..." />
                         </div>
-                        <button type="submit" form="occ-edit-@occ.Id" class="btn btn-outline btn-sm">Spremi</button>
+                        @if (Model.IsArchivedWorkshop)
+                        {
+                            <button type="submit" form="occ-edit-@occ.Id" class="btn btn-outline btn-sm"
+                                    onclick="document.getElementById('occ-edit-@(occ.Id)-send-email').value = confirm('Ako ovaj datum vrati radionicu iz arhive, poslati email pretplatnicima?'); return true;">
+                                Spremi
+                            </button>
+                        }
+                        else
+                        {
+                            <button type="submit" form="occ-edit-@occ.Id" class="btn btn-outline btn-sm">Spremi</button>
+                        }
                         <button type="submit" form="occ-delete-@occ.Id" class="btn-icon-danger" title="Obriši termin"
                                 onclick="return confirm('Obriši ovaj termin?')">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
@@ -118,7 +128,17 @@
                 <!-- Disabled until a date is actually picked — this used to silently
                      no-op on click otherwise (server just redirected back with nothing
                      added), which looked broken with no explanation. -->
-                <button type="submit" id="add-occ-btn" form="occ-add" class="btn btn-primary btn-sm" disabled>+ Novi datum</button>
+                @if (Model.IsArchivedWorkshop)
+                {
+                    <button type="submit" id="add-occ-btn" form="occ-add" class="btn btn-primary btn-sm" disabled
+                            onclick="document.getElementById('occ-add-send-email').value = confirm('Ako ovaj datum vrati radionicu iz arhive, poslati email pretplatnicima?'); return true;">
+                        + Novi datum
+                    </button>
+                }
+                else
+                {
+                    <button type="submit" id="add-occ-btn" form="occ-add" class="btn btn-primary btn-sm" disabled>+ Novi datum</button>
+                }
             </div>
             <script>
             document.getElementById('new-occ-date').addEventListener('input', function () {
@@ -410,6 +430,10 @@
         <form id="occ-edit-@occ.Id" method="post" asp-page-handler="UpdateOccurrence" style="display:none;">
             <input type="hidden" name="occurrenceId" value="@occ.Id" />
             <input type="hidden" name="workshopId" value="@Model.Input.Id" />
+            @if (Model.IsArchivedWorkshop)
+            {
+                <input type="hidden" name="sendEmail" id="occ-edit-@(occ.Id)-send-email" value="true" />
+            }
         </form>
         <form id="occ-delete-@occ.Id" method="post" asp-page-handler="DeleteOccurrence" style="display:none;">
             <input type="hidden" name="occurrenceId" value="@occ.Id" />
@@ -418,5 +442,9 @@
     }
     <form id="occ-add" method="post" asp-page-handler="AddOccurrence" style="display:none;">
         <input type="hidden" name="workshopId" value="@Model.Input.Id" />
+        @if (Model.IsArchivedWorkshop)
+        {
+            <input type="hidden" name="sendEmail" id="occ-add-send-email" value="true" />
+        }
     </form>
 }
