@@ -154,6 +154,55 @@ using (var scope = app.Services.CreateScope())
 
 ---
 
+## 4b. Email (Google Workspace SMTP)
+
+The site sends mail (newsletter confirmations, workshop announcements, inquiry
+notifications) via `EmailService.cs`, which authenticates to `smtp.gmail.com`
+with a Google account + App Password. `hello@workshopzagreb.com` is a Google
+**Group** (a shared inbox multiple people read), not a real mailbox — Groups
+can't hold 2-Step Verification or an App Password directly, so the app
+authenticates as an actual admin user instead and sends *as* the group via a
+verified Gmail "Send mail as" alias:
+
+- **Username** (the account that logs in to SMTP): `admin@workshopzagreb.com`
+- **From** (what recipients see, and where `SendInquiryAsync` delivers new
+  inquiries — see `EmailService.cs`'s `adminEmail`, deliberately derived from
+  `From`, not `Username`): `hello@workshopzagreb.com`
+
+To get a new App Password if the current one is ever revoked/rotated:
+1. Sign in to Gmail as `admin@workshopzagreb.com`.
+2. Confirm `hello@workshopzagreb.com` is still listed under **Settings → Accounts
+   and Import → Send mail as** (this is what makes sending "as" a Group work at
+   all — a plain alias add fails with "already used by another group").
+3. `myaccount.google.com/security` → turn on 2-Step Verification (this account
+   only — do not do this on someone else's personal account without asking).
+4. `myaccount.google.com/apppasswords` → generate one, name it something
+   identifiable like "Workshop Zagreb Website".
+
+Set it on Azure — **App Service → Settings → Environment variables → Add**:
+
+| Name | Value |
+|---|---|
+| `Email__Smtp__Password` | the App Password |
+| `Email__Smtp__Username` | `admin@workshopzagreb.com` |
+
+(Double underscore maps to `:` in ASP.NET Core config — `Email__Smtp__Password`
+becomes `Email:Smtp:Password`.) No need to set `Email__Smtp__From` — that value
+is already correct in the checked-in `appsettings.json`.
+
+For local dev, use user secrets instead (never touches git):
+```bash
+dotnet user-secrets set "Email:Smtp:Password" "xxxxxxxxxxxxxxxx"
+dotnet user-secrets set "Email:Smtp:Username" "admin@workshopzagreb.com"
+```
+
+If `Email:Smtp:Password` is unset, `EmailService` logs a warning and silently
+skips sending — safe default for local dev, but means a missing/rotated App
+Password on Azure fails silently too. Worth checking App Service **Log stream**
+for `Email:Smtp not fully configured` warnings if emails seem to stop arriving.
+
+---
+
 ## 5. Custom Domain
 
 1. Buy domain (e.g. `workshopzagreb.hr` from domains.hr or similar Croatian registrar).

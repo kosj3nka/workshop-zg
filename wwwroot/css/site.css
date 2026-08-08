@@ -700,6 +700,9 @@ textarea.form-control { resize: vertical; min-height: 140px; }
 .footer-links a, .footer-social a { font-size: 0.8rem; opacity: 0.6; transition: opacity 0.2s; letter-spacing: 0.04em; }
 .footer-links a:hover, .footer-social a:hover { opacity: 1; }
 .footer-copy { font-size: 0.72rem; opacity: 0.32; text-align: center; max-width: 1160px; margin: 0 auto; border-top: 1px solid rgba(255,255,255,0.07); padding-top: 24px; }
+.footer-address { display: flex; align-items: center; gap: 6px; font-size: 0.8rem; opacity: 0.5; color: inherit; transition: opacity 0.2s; }
+.footer-address:hover { opacity: 1; }
+.footer-social-icons { display: flex; flex-direction: row; gap: 14px; }
 
 /* STATIC PAGES */
 .static-page        { padding-top: calc(var(--nav-h) + 60px); padding-bottom: 80px; }
@@ -1042,7 +1045,7 @@ a.cal-day:hover .cal-event { color: var(--espresso); }
 }
 .home-newsletter-input::placeholder { color: rgba(245,240,232,0.35); }
 .home-newsletter-input:focus { border-color: var(--accent); }
-.home-newsletter-row .btn-primary { flex-shrink: 0; border-radius: 0; }
+.home-newsletter-row .btn-primary { flex-shrink: 0; border-radius: 0; border-color: var(--cream); }
 .home-newsletter-thanks { font-size: 0.95rem; opacity: 0.8; padding: 13px 0; }
 .home-newsletter-gdpr { font-size: 0.68rem; opacity: 0.32; margin-top: 12px; }
 .home-newsletter-gdpr a { color: inherit; text-decoration: underline; }
@@ -1199,7 +1202,10 @@ a.cal-day:hover .cal-event { color: var(--espresso); }
 .suradnja-grid    { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: center; }
 .suradnja-grid--reverse .suradnja-img  { order: 2; }
 .suradnja-grid--reverse .suradnja-text { order: 1; }
-.suradnja-img img { width: 100%; aspect-ratio: 4/3; object-fit: cover; }
+.suradnja-img img, .suradnja-img video { width: 100%; aspect-ratio: 4/3; object-fit: cover; }
+.suradnja-img--full { align-self: stretch; }
+.suradnja-img--full img { height: 100%; aspect-ratio: auto; }
+.suradnja-img--3x4 video { aspect-ratio: 3/4; }
 .suradnja-text h2 { font-size: clamp(1.4rem,2.5vw,1.9rem); margin-bottom: 16px; }
 .suradnja-text p  { font-size: 0.95rem; line-height: 1.82; opacity: 0.78; margin-bottom: 14px; }
 .suradnja-text h3 { font-family: var(--font-sans); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; opacity: 0.48; }
@@ -1207,7 +1213,7 @@ a.cal-day:hover .cal-event { color: var(--espresso); }
 .suradnja-list li { font-size: 0.92rem; line-height: 1.55; padding-left: 20px; position: relative; opacity: 0.8; }
 .suradnja-list li::before { content: '→'; position: absolute; left: 0; color: var(--terracotta); font-size: 0.82rem; }
 
-.suradnja-divider    { height: 1px; background: var(--border); margin: 0 32px; }
+.suradnja-divider    { height: 1px; background: var(--border); }
 .suradnja-bottom-cta { background: var(--cream); padding: 80px 32px; border-top: 1px solid var(--border); }
 .suradnja-bottom-cta h2 { font-size: clamp(1.8rem,3vw,2.5rem); margin-bottom: 0; }
 

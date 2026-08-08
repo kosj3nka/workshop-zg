@@ -6,15 +6,11 @@
 }
 
 @{
-    // Split the drink categories roughly in half so they balance into two columns,
-    // the same way the page used to look when the menu was hardcoded.
-    int half = (Model.DrinkCategories.Count + 1) / 2;
-    var drinksLeft  = Model.DrinkCategories.Take(half).ToList();
-    var drinksRight = Model.DrinkCategories.Skip(half).ToList();
-
-    int foodHalf = (Model.FoodCategories.Count + 1) / 2;
-    var foodLeft  = Model.FoodCategories.Take(foodHalf).ToList();
-    var foodRight = Model.FoodCategories.Skip(foodHalf).ToList();
+    // Balance columns by item count (not just category count) so neither column
+    // ends up much taller than the other regardless of how items are distributed
+    // across categories.
+    var (drinksLeft, drinksRight) = MenuModel.SplitIntoBalancedColumns(Model.DrinkCategories);
+    var (foodLeft, foodRight) = MenuModel.SplitIntoBalancedColumns(Model.FoodCategories);
 }
 
 <div class="static-page">

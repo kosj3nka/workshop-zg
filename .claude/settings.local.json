@@ -4,7 +4,9 @@
       "Bash(dotnet build *)",
       "Bash(dir wwwroot *)",
       "Bash(ls .claude/launch.json)",
-      "Bash(cat .claude/launch.json)"
+      "Bash(cat .claude/launch.json)",
+      "Bash(rm -f workshop.db workshop.db-shm workshop.db-wal)",
+      "Bash(tasklist //FI \"IMAGENAME eq dotnet.exe\")"
     ]
   }
 }
