@@ -285,7 +285,7 @@ public class WorkshopEditModel : PageModel
         return RedirectToPage("/Admin/Index");
     }
 
-    public async Task<IActionResult> OnPostUnarchiveAsync(int id)
+    public async Task<IActionResult> OnPostUnarchiveAsync(int id, bool sendEmail = true)
     {
         var auth = CheckAuth(); if (auth != null) return auth;
 
@@ -306,10 +306,18 @@ public class WorkshopEditModel : PageModel
         workshop.IsArchived = false;
         await _db.SaveChangesAsync();
 
-        var subject = $"Radionica je ponovno dostupna: {workshop.Name} — Workshop Zagreb";
-        var subs = await ActiveSubscribersAsync();
-        var result = await _email.SendWorkshopAnnouncementAsync(workshop, futureOccurrence, subs, subject, "Ponovno dostupno");
-        SetEmailResultFlash(result);
+        if (sendEmail)
+        {
+            var subject = $"Radionica je ponovno dostupna: {workshop.Name} — Workshop Zagreb";
+            var subs = await ActiveSubscribersAsync();
+            var result = await _email.SendWorkshopAnnouncementAsync(workshop, futureOccurrence, subs, subject, "Ponovno dostupno");
+            SetEmailResultFlash(result);
+        }
+        else
+        {
+            TempData["FlashType"] = "success";
+            TempData["Flash"] = "Radionica je vraćena iz arhive.";
+        }
 
         return RedirectToPage(new { action = "edit", id });
     }

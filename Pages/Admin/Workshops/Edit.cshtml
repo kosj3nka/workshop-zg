@@ -19,7 +19,11 @@
         @if (Model.CanUnarchiveDirectly)
         {
             <form method="post" asp-page-handler="Unarchive" asp-route-id="@Model.Input.Id" style="display:inline;">
-                <button type="submit" class="btn btn-outline btn-sm" style="margin-left:8px;">Vrati iz arhive</button>
+                <input type="hidden" name="sendEmail" id="unarchive-send-email" value="true" />
+                <button type="submit" class="btn btn-outline btn-sm" style="margin-left:8px;"
+                        onclick="document.getElementById('unarchive-send-email').value = confirm('Poslati email pretplatnicima da je radionica ponovno dostupna?'); return true;">
+                    Vrati iz arhive
+                </button>
             </form>
         }
         else
