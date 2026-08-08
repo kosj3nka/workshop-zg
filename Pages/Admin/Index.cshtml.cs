@@ -41,8 +41,8 @@ public class AdminIndexModel : PageModel
             .Where(w => !w.IsArchived && w.Occurrences.Any(o => o.Date >= today))
             .OrderBy(w => w.Occurrences.Where(o => o.Date >= today).Min(o => o.Date))
             .ToList();
-        PastWorkshops = nonReservable
-            .Where(w => w.IsArchived || !w.Occurrences.Any(o => o.Date >= today))
+        PastWorkshops = all
+            .Where(w => w.IsArchived || (!w.IsReservable && !w.Occurrences.Any(o => o.Date >= today)))
             .OrderByDescending(w => w.Occurrences.Any() ? w.Occurrences.Max(o => o.Date) : DateTime.MinValue)
             .ToList();
 
