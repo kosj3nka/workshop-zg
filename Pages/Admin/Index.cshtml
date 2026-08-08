@@ -62,16 +62,20 @@
                             <h3>@w.Name</h3>
                             <p>
                                 @next.Date.ToString("dd. MM. yyyy") u @next.StartTime.ToString(@"hh\:mm")
-                                @(!string.IsNullOrEmpty(w.Price) ? $" · {w.Price}" : " · Besplatno")
+                                @(!string.IsNullOrEmpty(w.Price) ? $" · {w.Price}" : " · Cijena po upitu")
                                 @(extraCount > 0 ? $" · +{extraCount} termina" : "")
                             </p>
                         </div>
                     </div>
                     <div class="admin-list-item-actions">
-                        <a href="/admin/workshops/edit/@w.Id" class="btn btn-outline btn-sm">Edit</a>
+                        <a href="/admin/workshops/edit/@w.Id" class="btn-icon-edit" title="Uredi">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4Z"/></svg>
+                        </a>
                         <form method="post" asp-page-handler="Archive" asp-route-id="@w.Id"
                               onsubmit="return confirm('Archive @w.Name? It will move to the Arhiva tab.')">
-                            <button type="submit" class="btn btn-outline btn-sm">Archive</button>
+                            <button type="submit" class="btn-icon-archive" title="Arhiviraj">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><path d="M10 12h4"/></svg>
+                            </button>
                         </form>
                         <form method="post" asp-page-handler="Delete" asp-route-id="@w.Id"
                               onsubmit="return confirm('Delete @w.Name?')">
@@ -114,10 +118,14 @@
                         </div>
                     </div>
                     <div class="admin-list-item-actions">
-                        <a href="/admin/workshops/edit/@w.Id" class="btn btn-outline btn-sm">Edit</a>
+                        <a href="/admin/workshops/edit/@w.Id" class="btn-icon-edit" title="Uredi">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4Z"/></svg>
+                        </a>
                         <form method="post" asp-page-handler="Archive" asp-route-id="@w.Id"
                               onsubmit="return confirm('Arhiviraj @w.Name? Premjestit će se u Arhiva karticu.')">
-                            <button type="submit" class="btn btn-outline btn-sm">Archive</button>
+                            <button type="submit" class="btn-icon-archive" title="Arhiviraj">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><path d="M10 12h4"/></svg>
+                            </button>
                         </form>
                         <form method="post" asp-page-handler="Delete" asp-route-id="@w.Id"
                               onsubmit="return confirm('Obriši @w.Name?')">
@@ -154,25 +162,29 @@
                         }
                         <div class="admin-list-item-info">
                             <h3>@w.Name</h3>
-                            <p>@(!string.IsNullOrEmpty(w.Price) ? w.Price : "Besplatno")</p>
+                            <p>@(!string.IsNullOrEmpty(w.Price) ? w.Price : "Cijena po upitu")</p>
                         </div>
                     </div>
                     <div class="admin-list-item-actions">
-                        <a href="/admin/workshops/edit/@w.Id" class="btn btn-primary btn-sm">Uredi</a>
+                        <a href="/admin/workshops/edit/@w.Id" class="btn-icon-edit" title="Uredi">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4Z"/></svg>
+                        </a>
                         @if (w.IsReservable)
                         {
                             <form method="post" asp-page="/Admin/Workshops/Edit" asp-route-action="edit" asp-route-id="@w.Id"
                                   asp-page-handler="Unarchive" style="display:inline;">
                                 <input type="hidden" name="sendEmail" id="index-unarchive-send-email-@w.Id" value="true" />
-                                <button type="submit" class="btn btn-outline btn-sm"
+                                <button type="submit" class="btn-icon-unarchive" title="Vrati iz arhive"
                                         onclick="document.getElementById('index-unarchive-send-email-@(w.Id)').value = confirm('Poslati email pretplatnicima da je radionica ponovno dostupna? Radionica se vraća iz arhive u oba slučaja.'); return true;">
-                                    Vrati iz arhive
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><path d="m9 15 3-3 3 3"/><path d="M12 12v7"/></svg>
                                 </button>
                             </form>
                         }
                         else
                         {
-                            <a href="/admin/workshops/edit/@w.Id" class="btn btn-outline btn-sm">Vrati iz arhive</a>
+                            <a href="/admin/workshops/edit/@w.Id" class="btn-icon-unarchive" title="Vrati iz arhive (dodaj datum)">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><path d="m9 15 3-3 3 3"/><path d="M12 12v7"/></svg>
+                            </a>
                         }
                         <form method="post" asp-page-handler="Delete" asp-route-id="@w.Id"
                               onsubmit="return confirm('Delete @w.Name?')">

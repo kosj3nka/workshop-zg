@@ -94,7 +94,7 @@
                         <p class="workshop-card-desc">@w.Description</p>
                     </div>
                     <div class="workshop-card-footer">
-                        <span class="workshop-price">@(!string.IsNullOrEmpty(w.Price) ? w.Price : "Free")</span>
+                        <span class="workshop-price">@(!string.IsNullOrEmpty(w.Price) ? w.Price : "Cijena po upitu")</span>
                         @if (!string.IsNullOrEmpty(w.Price))
                         {
                             <span class="btn btn-outline btn-sm">Reserve</span>

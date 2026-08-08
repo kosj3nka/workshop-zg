@@ -67,20 +67,20 @@
             {
                 @foreach (var occ in Model.Occurrences)
                 {
-                    <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--border);">
-                        <div class="form-group" style="margin:0;">
+                    <div class="occurrence-row">
+                        <div class="form-group">
                             <label class="form-label">Datum</label>
                             <input type="date" form="occ-edit-@occ.Id" name="occDate" value="@occ.Date.ToString("yyyy-MM-dd")" class="form-control" required />
                         </div>
-                        <div class="form-group" style="margin:0;">
+                        <div class="form-group">
                             <label class="form-label">Početak</label>
                             <input type="time" form="occ-edit-@occ.Id" name="occStartTime" value="@occ.StartTime.ToString(@"hh\:mm")" class="form-control" required />
                         </div>
-                        <div class="form-group" style="margin:0;">
+                        <div class="form-group">
                             <label class="form-label">Kraj</label>
                             <input type="time" form="occ-edit-@occ.Id" name="occEndTime" value="@(occ.EndTime.HasValue ? occ.EndTime.Value.ToString(@"hh\:mm") : "")" class="form-control" />
                         </div>
-                        <div class="form-group" style="margin:0;flex:1;min-width:180px;">
+                        <div class="form-group" style="flex:1;min-width:180px;">
                             <label class="form-label">Entrio URL</label>
                             <input type="url" form="occ-edit-@occ.Id" name="occEntrioUrl" value="@occ.EntrioUrl" class="form-control" placeholder="https://entrio.hr/event/..." />
                         </div>
@@ -108,20 +108,20 @@
             }
 
             <p class="form-section-title">+ Novi datum</p>
-            <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;">
-                <div class="form-group" style="margin:0;">
+            <div class="occurrence-row" style="background:var(--warm-white);border-style:dashed;">
+                <div class="form-group">
                     <label class="form-label">Datum</label>
                     <input type="date" id="new-occ-date" form="occ-add" name="NewOccurrence.Date" class="form-control" required />
                 </div>
-                <div class="form-group" style="margin:0;">
+                <div class="form-group">
                     <label class="form-label">Početak</label>
                     <input type="time" form="occ-add" name="NewOccurrence.StartTime" value="14:00" class="form-control" required />
                 </div>
-                <div class="form-group" style="margin:0;">
+                <div class="form-group">
                     <label class="form-label">Kraj</label>
                     <input type="time" form="occ-add" name="NewOccurrence.EndTime" class="form-control" />
                 </div>
-                <div class="form-group" style="margin:0;flex:1;min-width:180px;">
+                <div class="form-group" style="flex:1;min-width:180px;">
                     <label class="form-label">Entrio URL</label>
                     <input type="url" form="occ-add" name="NewOccurrence.EntrioUrl" class="form-control" placeholder="https://entrio.hr/event/..." />
                 </div>
@@ -149,7 +149,7 @@
     }
 
     <div class="form-group">
-        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+        <label class="form-toggle">
             <!--
                 Checkbox must come BEFORE its hidden false-fallback in source order.
                 When checked, the browser submits both "true" (checkbox) and "false"
@@ -158,10 +158,10 @@
                 bound value was always "false", even when the box was visibly checked.
             -->
             <input type="checkbox" id="chk-reservable" name="Input.IsReservable" value="true"
-                   @(Model.Input.IsReservable ? "checked" : "") style="width:16px;height:16px;"
+                   @(Model.Input.IsReservable ? "checked" : "")
                    onchange="toggleReservable(this.checked)" />
             <input type="hidden" name="Input.IsReservable" value="false" />
-            <span class="form-label" style="margin:0;">Reservable (rezervira se za grupu, bez specifičnog datuma)</span>
+            <span>Rezervabilno (rezervira se za grupu, bez specifičnog datuma)</span>
         </label>
     </div>
 
@@ -272,15 +272,17 @@
         <input type="url" name="Input.HostWebsite" value="@Model.Input.HostWebsite" class="form-control" placeholder="https://..." />
     </div>
 
-    <p class="form-section-title">Images</p>
+    <p class="form-section-title">Slike</p>
 
     <div class="form-group">
         <label class="form-label">Banner <span class="required">*</span></label>
         @if (!string.IsNullOrEmpty(Model.Input.ExistingBannerUrl))
         {
             <div style="margin-bottom:12px;">
-                <img src="@Model.Input.ExistingBannerUrl" alt="current banner" style="width:100%; max-height:180px; object-fit:cover;" />
-                <p class="form-hint">Current banner. Upload a new image to replace it.</p>
+                <div class="image-preview-box" style="display:block;">
+                    <img src="@Model.Input.ExistingBannerUrl" alt="trenutni banner" style="width:100%; max-height:180px; object-fit:cover;" />
+                </div>
+                <p class="form-hint">Trenutni banner. Učitaj novu sliku da ga zamijeniš.</p>
             </div>
         }
         <input type="file" name="BannerFile" class="form-control" accept="image/png,image/jpeg,image/webp"
@@ -288,24 +290,26 @@
     </div>
 
     <div class="form-group">
-        <label class="form-label">Logo <span style="font-weight:400; font-size:0.9rem; opacity:0.6;">(optional)</span></label>
+        <label class="form-label">Logo <span style="font-weight:400; font-size:0.9rem; opacity:0.6;">(opcionalno)</span></label>
         @if (!string.IsNullOrEmpty(Model.Input.ExistingLogoUrl))
         {
             <div style="margin-bottom:12px;">
-                <img src="@Model.Input.ExistingLogoUrl" alt="current logo" style="width:64px; height:64px; object-fit:cover; background:var(--cream);" />
+                <div class="image-preview-box">
+                    <img src="@Model.Input.ExistingLogoUrl" alt="trenutni logo" style="width:64px; height:64px; object-fit:cover;" />
+                </div>
             </div>
         }
         <input type="file" name="LogoFile" class="form-control" accept="image/png,image/jpeg,image/webp" />
     </div>
 
     <div class="form-group">
-        <label class="form-label">Additional photos <span style="font-weight:400; font-size:0.9rem; opacity:0.6;">(optional)</span></label>
+        <label class="form-label">Dodatne fotografije <span style="font-weight:400; font-size:0.9rem; opacity:0.6;">(opcionalno)</span></label>
         @if (Model.ExistingPhotos.Any())
         {
             <div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:16px;">
                 @foreach (var photo in Model.ExistingPhotos)
                 {
-                    <div style="position:relative;">
+                    <div class="image-preview-box">
                         <img src="@photo.Url" alt="" style="height:80px; width:80px; object-fit:cover;" />
                         <!--
                             Nesting a <form> here (inside the outer "form-card" form) is invalid
@@ -317,8 +321,8 @@
                             the outer form closes (see below), with no nesting involved.
                         -->
                         <button type="submit" form="delete-photo-@photo.Id" class="btn-icon-danger" title="Obriši fotografiju"
-                                onclick="return confirm('Delete this photo?')"
-                                style="position:absolute; top:-6px; right:-6px; width:22px; height:22px; border-radius:50%; padding:0;">
+                                onclick="return confirm('Obrisati ovu fotografiju?')"
+                                style="position:absolute; top:-8px; right:-8px; width:22px; height:22px; border-radius:50%; padding:0;">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
                         </button>
                     </div>
@@ -354,7 +358,7 @@
             preview.innerHTML = '';
             staged.forEach(function (file, index) {
                 var wrap = document.createElement('div');
-                wrap.style.position = 'relative';
+                wrap.className = 'image-preview-box';
 
                 var img = document.createElement('img');
                 img.src = URL.createObjectURL(file);
@@ -365,7 +369,7 @@
                 btn.type = 'button';
                 btn.className = 'btn-icon-danger';
                 btn.title = 'Ukloni fotografiju';
-                btn.style.cssText = 'position:absolute;top:-6px;right:-6px;width:22px;height:22px;border-radius:50%;padding:0;';
+                btn.style.cssText = 'position:absolute;top:-8px;right:-8px;width:22px;height:22px;border-radius:50%;padding:0;';
                 btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>';
                 btn.onclick = function () {
                     staged.splice(index, 1);
@@ -388,11 +392,11 @@
     {
         <p class="form-section-title">Obavijesti pretplatnike</p>
         <div class="form-group">
-            <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+            <label class="form-toggle">
                 <input type="checkbox" id="chk-notify" name="Input.NotifySubscribers" value="true"
-                       style="width:16px;height:16px;" onchange="document.getElementById('notify-fields').style.display = this.checked ? '' : 'none'" />
+                       onchange="document.getElementById('notify-fields').style.display = this.checked ? '' : 'none'" />
                 <input type="hidden" name="Input.NotifySubscribers" value="false" />
-                <span class="form-label" style="margin:0;">Pošalji email svim pretplatnicima</span>
+                <span>Pošalji email svim pretplatnicima</span>
             </label>
         </div>
         <div id="notify-fields" style="display:none">
