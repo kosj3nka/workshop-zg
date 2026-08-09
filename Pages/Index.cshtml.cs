@@ -89,10 +89,10 @@ public class IndexModel : PageModel
                 .First();
         }
 
-        // Reservable workshops appended after the dated ones in the same strip, capped at 2
+        // Reservable workshops appended after the dated ones in the same strip, newest first, capped at 2
         ReservableWorkshops = await _db.Workshops
             .Where(w => w.IsReservable && !w.IsArchived)
-            .OrderBy(w => w.Name)
+            .OrderByDescending(w => w.CreatedAt)
             .Take(2)
             .ToListAsync();
     }
