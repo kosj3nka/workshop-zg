@@ -181,9 +181,14 @@
         </div>
     }
 
-    <div id="reservable-row" style="display:@(Model.Input.IsReservable ? "" : "none")">
+    <!--
+        Same booking template for every workshop, reservable or not — how you buy a
+        ticket or make a reservation should look and work identically either way, so
+        this is never hidden based on Input.IsReservable.
+    -->
+    <div id="reservable-row">
         <div class="form-group">
-            <label class="form-label">Način rezervacije</label>
+            <label class="form-label">Način kupnje / rezervacije</label>
             <select name="Input.BookingType" class="form-control" onchange="toggleBookingValue(this.value)">
                 <option value="webpage" selected="@(Model.Input.BookingType == "webpage")">Web stranica</option>
                 <option value="email" selected="@(Model.Input.BookingType == "email")">Email</option>
@@ -194,7 +199,8 @@
                 @(Model.Input.BookingType == "email" ? "Email adresa" : "URL stranice")
             </label>
             <input type="text" name="Input.BookingValue" value="@Model.Input.BookingValue"
-                   class="form-control" placeholder="/suradnja#upit ili npr@workshopzagreb.com" />
+                   class="form-control" placeholder="https://entrio.hr/event/... ili npr@workshopzagreb.com" />
+            <p class="form-hint">Vrijedi za sve termine ove radionice.</p>
         </div>
     </div>
 
@@ -202,8 +208,8 @@
     function toggleReservable(isReservable) {
         var dateRow = document.getElementById('date-row');
         if (dateRow) dateRow.style.display = isReservable ? 'none' : '';
-        document.getElementById('ticket-url-row').style.display = isReservable ? 'none' : '';
-        document.getElementById('reservable-row').style.display = isReservable ? '' : 'none';
+        var spotsRow = document.getElementById('spots-left-row');
+        if (spotsRow) spotsRow.style.display = isReservable ? 'none' : '';
         var dateInput = document.getElementById('input-date');
         var timeInput = document.getElementById('input-starttime');
         if (dateInput) dateInput.required = !isReservable;
@@ -221,13 +227,6 @@
         <p class="form-hint">Slobodan tekst — može biti fiksna cijena, raspon ili "Po dogovoru".</p>
     </div>
 
-    <div id="ticket-url-row" class="form-group" style="display:@(Model.Input.IsReservable ? "none" : "")">
-        <label class="form-label">Link za ulaznice <span style="opacity:0.5;font-weight:400;">(opcionalno)</span></label>
-        <input type="url" name="Input.TicketUrl" value="@Model.Input.TicketUrl"
-               class="form-control" placeholder="https://entrio.hr/event/..." />
-        <p class="form-hint">Vrijedi za sve termine ove radionice.</p>
-    </div>
-
     <div class="form-group">
         <label class="form-label">Opis <span class="required">*</span></label>
         <textarea name="Input.Description" class="form-control" required
@@ -238,6 +237,13 @@
         <label class="form-label">Max polaznika</label>
         <input type="number" name="Input.MaxParticipants" value="@Model.Input.MaxParticipants"
                class="form-control" min="1" placeholder="npr. 12" />
+    </div>
+
+    <div id="spots-left-row" class="form-group" style="display:@(Model.Input.IsReservable ? "none" : "")">
+        <label class="form-label">Preostalo mjesta <span style="opacity:0.5;font-weight:400;">(opcionalno)</span></label>
+        <input type="number" name="Input.SpotsLeft" value="@Model.Input.SpotsLeft"
+               class="form-control" min="0" placeholder="npr. 3" />
+        <p class="form-hint">Ako upišeš broj i padne ispod 5 (ili na 0), prikazuje se na kartici radionice. Prazno = ništa se ne prikazuje.</p>
     </div>
 
     <p class="form-section-title">Instagram</p>

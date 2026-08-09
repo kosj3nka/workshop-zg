@@ -27,6 +27,11 @@
         System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.InvariantCulture, out var _p)
         ? _p : null;
 
+    // Falls back to the legacy TicketUrl for a workshop that hasn't been re-saved
+    // since the booking fields were unified across reservable and dated workshops.
+    string? _offerUrl = _w.BookingValue ?? _w.TicketUrl;
+    string _availability = _w.SpotsLeft == 0 ? "https://schema.org/SoldOut" : "https://schema.org/InStock";
+
     <script type="application/ld+json">
     {
       "@@context": "https://schema.org",
@@ -54,13 +59,13 @@
         "@@type": "Organization",
         "name": "Workshop Zagreb",
         "url": "https://workshopzagreb.com"
-      }@((_numericPrice.HasValue && !string.IsNullOrEmpty(_w.TicketUrl)) ? Html.Raw($@",
+      }@((_numericPrice.HasValue && !string.IsNullOrEmpty(_offerUrl)) ? Html.Raw($@",
       ""offers"": {{
         ""@@type"": ""Offer"",
         ""price"": ""{_numericPrice:0}"",
         ""priceCurrency"": ""EUR"",
-        ""availability"": ""https://schema.org/InStock"",
-        ""url"": {J(_w.TicketUrl)}
+        ""availability"": ""{_availability}"",
+        ""url"": {J(_offerUrl)}
       }}") : Html.Raw(""))
     }
     </script>
@@ -96,9 +101,9 @@ else
 
         <div class="workshop-detail-grid">
 
-            <div>
-                <h1 class="workshop-detail-title">@w.Name</h1>
+            <h1 class="workshop-detail-title">@w.Name</h1>
 
+            <div class="workshop-detail-main">
                 <div class="workshop-detail-meta">
                     @if (!w.IsReservable)
                     {
@@ -161,35 +166,51 @@ else
                         @(w.MaxParticipants.HasValue ? $"Max {w.MaxParticipants} participants" : "Open registration")
                     </p>
 
+                    @if (!w.IsReservable && w.SpotsLeft.HasValue && w.SpotsLeft.Value < 5)
+                    {
+                        <p class="sidebar-spots @(w.SpotsLeft.Value <= 0 ? "sold-out" : "low")">
+                            @(w.SpotsLeft.Value <= 0 ? "Sold out" : $"Only {w.SpotsLeft.Value} spot{(w.SpotsLeft.Value == 1 ? "" : "s")} left")
+                        </p>
+                    }
+
+                    @{
+                        // Same booking template for every workshop, reservable or not — falls back
+                        // to the legacy TicketUrl for a workshop not yet re-saved since the unification.
+                        var _bookingType  = w.BookingType ?? (!string.IsNullOrEmpty(w.TicketUrl) ? "webpage" : null);
+                        var _bookingValue = w.BookingValue ?? w.TicketUrl;
+                        var _isEmail = _bookingType == "email";
+                    }
+
                     @if (w.IsReservable)
                     {
-                        var bookHref = w.BookingType == "email" ? $"mailto:{w.BookingValue}" : w.BookingValue ?? "/suradnja#upit";
-                        <a href="@bookHref" target="@(w.BookingType == "email" ? null : "_blank")" rel="@(w.BookingType == "email" ? null : "noopener")" class="btn btn-primary">
+                        var bookHref = _isEmail ? $"mailto:{_bookingValue}" : _bookingValue ?? "/suradnja#upit";
+                        <a href="@bookHref" target="@(_isEmail ? null : "_blank")" rel="@(_isEmail ? null : "noopener")" class="btn btn-primary">
                             Rezerviraj →
                         </a>
                     }
                     else if (Model.UpcomingOccurrences.Any())
                     {
                         var nextOcc = Model.UpcomingOccurrences.First();
+
+                        <!-- Signup always shown, above Add to Calendar — a workshop
+                             without a price still needs a way to reserve a spot. -->
+                        if (!string.IsNullOrEmpty(_bookingValue))
+                        {
+                            var ticketHref = _isEmail ? $"mailto:{_bookingValue}" : _bookingValue;
+                            <a href="@ticketHref" target="@(_isEmail ? null : "_blank")" rel="@(_isEmail ? null : "noopener")" class="btn btn-primary">
+                                @(string.IsNullOrEmpty(w.Price) ? "Sign up ↗" : "Buy ticket ↗")
+                            </a>
+                        }
+                        else
+                        {
+                            <a href="https://www.instagram.com/workshop.zagreb/" target="_blank" class="btn btn-primary">
+                                Register via Instagram
+                            </a>
+                        }
+
                         <a href="@GoogleCalendarHelper.BuildAddToCalendarUrl(w, nextOcc)" target="_blank" rel="noopener" class="btn btn-outline">
                             + Add to Google Calendar
                         </a>
-
-                        if (!string.IsNullOrEmpty(w.Price))
-                        {
-                            if (!string.IsNullOrEmpty(w.TicketUrl))
-                            {
-                                <a href="@w.TicketUrl" target="_blank" rel="noopener" class="btn btn-primary">
-                                    Buy ticket (Entrio) ↗
-                                </a>
-                            }
-                            else
-                            {
-                                <a href="https://www.instagram.com/workshop.zagreb/" target="_blank" class="btn btn-primary">
-                                    Register via Instagram
-                                </a>
-                            }
-                        }
                     }
 
                     @if (!string.IsNullOrEmpty(w.HostName))

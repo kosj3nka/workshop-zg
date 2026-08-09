@@ -76,6 +76,12 @@
                             <img src="@w.BannerUrl" alt="@w.Name" />
                         }
                     </div>
+                    @if (w.SpotsLeft.HasValue && w.SpotsLeft.Value < 5)
+                    {
+                        <span class="workshop-card-spots @(w.SpotsLeft.Value <= 0 ? "sold-out" : "")">
+                            @(w.SpotsLeft.Value <= 0 ? "Sold out" : $"{w.SpotsLeft.Value} spots left")
+                        </span>
+                    }
                     @if (hasLogo)
                     {
                         <div class="workshop-card-logo-wrap">

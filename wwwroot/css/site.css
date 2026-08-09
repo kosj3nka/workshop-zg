@@ -231,17 +231,29 @@ h1, h2, h3 { font-family: var(--font-serif); line-height: 1.2; color: var(--espr
     width: 100%; height: 100%; object-fit: cover; display: block;
 }
 
-/* Logo — natural ratio, max-bounded, overlaps banner bottom */
+/* Low-stock / sold-out badge, anchored to the card (position:relative above) */
+.workshop-card-spots {
+    position: absolute; top: 12px; left: 12px; z-index: 2;
+    font-size: 0.64rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase;
+    padding: 5px 10px; border-radius: 20px;
+    background: var(--terracotta); color: white;
+}
+.workshop-card-spots.sold-out { background: var(--espresso); }
+
+/* Logo — natural ratio, max-bounded, overlaps banner bottom. Anchored by its
+   bottom edge (top = 184 - max-height) so a bigger logo grows upward into the
+   banner instead of dropping further into the body — .has-logo's body
+   padding-top below doesn't need to change to keep the title clear of it. */
 .workshop-card-logo-wrap {
     position: absolute;
-    top: 136px;
+    top: 120px;
     right: 14px;
     z-index: 2;
     line-height: 0;
 }
 .workshop-card-logo-wrap img {
-    max-width: 48px;
-    max-height: 48px;
+    max-width: 64px;
+    max-height: 64px;
     width: auto;
     height: auto;
     display: block;
@@ -300,11 +312,17 @@ h1, h2, h3 { font-family: var(--font-serif); line-height: 1.2; color: var(--espr
     .workshop-hero-logo-wrap img { max-width: 88px; max-height: 88px; }
 }
 
+/* Title, main content and sidebar are three separate grid items (not the
+   sidebar nested alongside title+content) so the sidebar can be reordered
+   to sit right after the title on mobile without touching the desktop
+   layout — see the title/main/sidebar grid-areas below. */
 .workshop-detail-grid {
-    display: grid; grid-template-columns: 1fr 340px; gap: 48px;
+    display: grid; grid-template-columns: 1fr 340px; gap: 0 48px;
+    grid-template-areas: "title sidebar" "main sidebar";
     max-width: 1160px; margin: 0 auto; padding: 74px 24px 80px;
 }
-.workshop-detail-title { font-size: clamp(2rem,4vw,3rem); margin-bottom: 16px; }
+.workshop-detail-title { grid-area: title; font-size: clamp(2rem,4vw,3rem); margin-bottom: 16px; }
+.workshop-detail-main  { grid-area: main; }
 .workshop-detail-meta  { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 32px; }
 .meta-pill {
     display: inline-flex; align-items: center; gap: 6px;
@@ -319,17 +337,24 @@ h1, h2, h3 { font-family: var(--font-serif); line-height: 1.2; color: var(--espr
     flex-shrink: 0; opacity: 0.7;
 }
 .workshop-detail-desc  { font-size: 1rem; line-height: 1.82; color: var(--charcoal); white-space: pre-line; }
+/* auto-fit (not auto-fill/a fixed repeat count) collapses unused tracks to
+   0 width — with a single photo it fills the row instead of leaving empty
+   cells that show the grid's own background as a bare rectangle. */
 .workshop-photos-grid  {
-    display: grid; grid-template-columns: repeat(3,1fr);
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(200px,1fr));
     gap: 1px; margin-top: 40px; background: var(--border);
 }
 .workshop-photos-grid img { aspect-ratio: 4/3; object-fit: cover; width: 100%; }
 
 /* SIDEBAR */
-.workshop-sidebar { position: sticky; top: calc(var(--nav-h) + 24px); height: fit-content; }
+.workshop-sidebar { grid-area: sidebar; position: sticky; top: calc(var(--nav-h) + 24px); height: fit-content; }
 .sidebar-card  { background: var(--warm-white); border: 1px solid var(--border); border-radius: 0; padding: 28px; }
 .sidebar-price { font-family: var(--font-serif); font-size: 2rem; color: var(--espresso); margin-bottom: 4px; }
 .sidebar-seats { font-size: 0.78rem; color: var(--charcoal); opacity: 0.52; margin-bottom: 24px; }
+.sidebar-seats:has(+ .sidebar-spots) { margin-bottom: 6px; }
+.sidebar-spots { font-size: 0.78rem; font-weight: 600; margin-bottom: 24px; }
+.sidebar-spots.low      { color: var(--terracotta); }
+.sidebar-spots.sold-out { color: #DC2626; }
 .sidebar-card .btn { width: 100%; text-align: center; margin-bottom: 12px; display: block; }
 .sidebar-host  { margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--border); }
 .sidebar-host h4 { font-family: var(--font-sans); font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--charcoal); opacity: 0.48; margin-bottom: 8px; }
@@ -787,12 +812,20 @@ textarea.form-control { resize: vertical; min-height: 140px; }
 @media (max-width: 768px) {
     .nav-links { display: none; }
     .nav-hamburger { display: flex; }
-    .workshop-detail-grid { grid-template-columns: 1fr; }
+
+    /* Booking box moves right after the title — above the date/description —
+       instead of trailing at the very end where it's easy to miss on mobile. */
+    .workshop-detail-grid {
+        grid-template-columns: 1fr;
+        grid-template-areas: "title" "sidebar" "main";
+        gap: 28px;
+    }
+    .workshop-sidebar { position: static; }
+
     .form-row { grid-template-columns: 1fr; }
-    .admin-list-item { flex-direction: column; align-items: flex-start; gap: 12px; }
     .footer-inner { flex-direction: column; gap: 28px; }
     .gallery-grid { columns: 2; }
-    .workshop-photos-grid { grid-template-columns: 1fr 1fr; }
+    .workshop-photos-grid { grid-template-columns: repeat(auto-fit, minmax(130px,1fr)); }
 }
 @media (max-width: 480px) {
     .gallery-grid { columns: 2; }
@@ -1302,6 +1335,14 @@ a.cal-day:hover .cal-event { color: var(--espresso); }
     .suradnja-grid--reverse .suradnja-img  { order: 0; }
     .suradnja-grid--reverse .suradnja-text { order: 0; }
     .suradnja-img { display: block; }
+
+    /* Once the grid stacks to one column, the image/video no longer shares a row
+       with the text — .suradnja-img--full's "height:100%" then has nothing to
+       size against and the 3:4 portrait video runs very tall, so both get pinned
+       to one consistent, screen-friendly landscape ratio instead. */
+    .suradnja-img img, .suradnja-img video { aspect-ratio: 16/10; max-height: 280px; }
+    .suradnja-img--full img { height: auto; aspect-ratio: 16/10; }
+    .suradnja-img--3x4 video { aspect-ratio: 16/10; }
 }
 
 @media (max-width: 640px) {

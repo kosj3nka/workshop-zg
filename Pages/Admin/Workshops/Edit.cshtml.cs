@@ -69,10 +69,12 @@ public class WorkshopEditModel : PageModel
                 Name = workshop.Name,
                 IsReservable = workshop.IsReservable,
                 BookingType = workshop.BookingType ?? "webpage",
-                BookingValue = workshop.BookingValue ?? "",
+                // Falls back to the legacy TicketUrl for a workshop that predates the
+                // unified booking field and hasn't been re-saved since — see Workshop.cs.
+                BookingValue = workshop.BookingValue ?? workshop.TicketUrl ?? "",
                 Description = workshop.Description,
                 Price = workshop.Price,
-                TicketUrl = workshop.TicketUrl,
+                SpotsLeft = workshop.SpotsLeft,
                 MaxParticipants = workshop.MaxParticipants,
                 InstagramPostUrl = workshop.InstagramPostUrl,
                 HostName = workshop.HostName,
@@ -134,11 +136,11 @@ public class WorkshopEditModel : PageModel
             {
                 Name = Input.Name,
                 IsReservable = Input.IsReservable,
-                BookingType = Input.IsReservable ? Input.BookingType : null,
-                BookingValue = Input.IsReservable ? Input.BookingValue : null,
+                BookingType = Input.BookingType,
+                BookingValue = Input.BookingValue,
                 Description = Input.Description,
                 Price = Input.Price,
-                TicketUrl = Input.TicketUrl,
+                SpotsLeft = Input.IsReservable ? null : Input.SpotsLeft,
                 MaxParticipants = Input.MaxParticipants,
                 InstagramPostUrl = Input.InstagramPostUrl ?? "",
                 HostName = Input.HostName,
@@ -184,11 +186,11 @@ public class WorkshopEditModel : PageModel
 
             workshop.Name = Input.Name;
             workshop.IsReservable = Input.IsReservable;
-            workshop.BookingType = Input.IsReservable ? Input.BookingType : null;
-            workshop.BookingValue = Input.IsReservable ? Input.BookingValue : null;
+            workshop.BookingType = Input.BookingType;
+            workshop.BookingValue = Input.BookingValue;
             workshop.Description = Input.Description;
             workshop.Price = Input.Price;
-            workshop.TicketUrl = Input.TicketUrl;
+            workshop.SpotsLeft = Input.IsReservable ? null : Input.SpotsLeft;
             workshop.MaxParticipants = Input.MaxParticipants;
             workshop.InstagramPostUrl = Input.InstagramPostUrl ?? "";
             workshop.HostName = Input.HostName;
@@ -453,7 +455,7 @@ public class WorkshopInputModel
     public string BookingValue { get; set; } = "";
     public string Description { get; set; } = "";
     public string? Price { get; set; }
-    public string? TicketUrl { get; set; }
+    public int? SpotsLeft { get; set; }
     public int? MaxParticipants { get; set; }
     public string InstagramPostUrl { get; set; } = "";
     public string? HostName { get; set; }

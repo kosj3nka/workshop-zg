@@ -20,9 +20,14 @@ public class Workshop
     public string? Price { get; set; }
     public int? MaxParticipants { get; set; }
 
-    // One ticket-purchase link for the whole workshop (applies to every occurrence) —
-    // not per-date, since a workshop is sold through a single event page regardless
-    // of how many times it repeats.
+    // Remaining capacity for the next occurrence — optional, admin-entered by hand
+    // (not derived from bookings, since there's no booking system in V1). Only
+    // meaningful for non-reservable workshops; shown on the card once it's low.
+    public int? SpotsLeft { get; set; }
+
+    // Legacy single ticket-purchase link, superseded by BookingType/BookingValue
+    // below (kept so already-published workshops keep working until next edit —
+    // see WorkshopEditModel.OnGetAsync, which migrates it into BookingValue).
     public string? TicketUrl { get; set; }
 
     // Slug is the URL-friendly version of the name: "Watercolour Basics" -> "watercolour-basics"
@@ -36,8 +41,12 @@ public class Workshop
 
     // Reservable workshops are booked as a group for no fixed date (e.g. a
     // birthday party) — shown with a single Book button instead of a date/time,
-    // and have zero WorkshopOccurrence rows. BookingType is "email" or "webpage".
+    // and have zero WorkshopOccurrence rows.
     public bool IsReservable { get; set; }
+
+    // How to buy a ticket / make a reservation — "email" or "webpage". Used by
+    // every workshop, reservable or not, so the buy/reserve action always looks
+    // and behaves the same way regardless of workshop type.
     public string? BookingType { get; set; }
     public string? BookingValue { get; set; }
 

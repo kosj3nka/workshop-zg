@@ -115,6 +115,11 @@ using (var scope = app.Services.CreateScope())
     try { db.Database.ExecuteSqlRaw("ALTER TABLE Workshops ADD COLUMN TicketUrl TEXT"); }
     catch { /* column already present — safe to ignore */ }
 
+    // SpotsLeft column added Aug 2026 — optional, admin-entered remaining-capacity
+    // count for non-reservable workshops; null means "no info, don't show anything"
+    try { db.Database.ExecuteSqlRaw("ALTER TABLE Workshops ADD COLUMN SpotsLeft INTEGER"); }
+    catch { /* column already present — safe to ignore */ }
+
     db.Database.ExecuteSqlRaw(@"
         CREATE TABLE IF NOT EXISTS WorkshopOccurrences (
             Id         INTEGER PRIMARY KEY AUTOINCREMENT,
