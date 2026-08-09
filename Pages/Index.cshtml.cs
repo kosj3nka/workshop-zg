@@ -14,6 +14,7 @@ public class IndexModel : PageModel
     public List<Workshop> UpcomingWorkshops { get; set; } = new();
     public List<Workshop> ReservableWorkshops { get; set; } = new();
     public Dictionary<int, WorkshopOccurrence> NextOccurrenceByWorkshopId { get; set; } = new();
+    public Dictionary<int, int> UpcomingOccurrenceCountByWorkshopId { get; set; } = new();
 
     public Dictionary<DateTime, List<(Workshop Workshop, WorkshopOccurrence Occurrence)>> WorkshopsByDate { get; set; } = new();
     public Dictionary<DateTime, ReservedDay> ReservedDays { get; set; } = new();
@@ -83,10 +84,9 @@ public class IndexModel : PageModel
 
         foreach (var w in UpcomingWorkshops)
         {
-            NextOccurrenceByWorkshopId[w.Id] = w.Occurrences
-                .Where(o => o.Date >= today)
-                .OrderBy(o => o.Date)
-                .First();
+            var upcoming = w.Occurrences.Where(o => o.Date >= today).OrderBy(o => o.Date).ToList();
+            NextOccurrenceByWorkshopId[w.Id] = upcoming.First();
+            UpcomingOccurrenceCountByWorkshopId[w.Id] = upcoming.Count;
         }
 
         // Reservable workshops appended after the dated ones in the same strip, newest first, capped at 2

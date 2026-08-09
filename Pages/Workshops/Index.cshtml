@@ -20,64 +20,14 @@
     <div class="workshops-grid">
         @foreach (var p in Model.ReservableWorkshops)
         {
-            <a href="/workshops/@p.Slug" class="workshop-card">
-                <div class="workshop-card-banner">
-                    @if (!string.IsNullOrEmpty(p.BannerUrl))
-                    {
-                        <img src="@p.BannerUrl" alt="@p.Name" />
-                    }
-                </div>
-                <div class="workshop-card-body">
-                    <p class="workshop-card-date">Uvijek dostupno</p>
-                    <h3 class="workshop-card-title">@p.Name</h3>
-                    <p class="workshop-card-desc">@p.Description</p>
-                </div>
-                <div class="workshop-card-footer">
-                    <span class="btn btn-outline btn-sm">Rezerviraj →</span>
-                </div>
-            </a>
+            @await Html.PartialAsync("_WorkshopCard", (p, (WorkshopOccurrence?)null, 0))
         }
 
         @foreach (var w in Model.Workshops)
         {
-            bool hasLogo = !string.IsNullOrEmpty(w.LogoUrl)
-                           && w.LogoUrl != "/images/workshops/placeholder-logo.png";
             var next = Model.NextOccurrenceByWorkshopId[w.Id];
             var extraCount = Model.UpcomingOccurrenceCountByWorkshopId[w.Id] - 1;
-            <a href="/workshops/@w.Slug" class="workshop-card @(hasLogo ? "has-logo" : "")">
-                <div class="workshop-card-banner">
-                    @if (!string.IsNullOrEmpty(w.BannerUrl))
-                    {
-                        <img src="@w.BannerUrl" alt="@w.Name" />
-                    }
-                </div>
-                @if (w.SpotsLeft.HasValue && w.SpotsLeft.Value < 5)
-                {
-                    <span class="workshop-card-spots @(w.SpotsLeft.Value <= 0 ? "sold-out" : "")">
-                        @(w.SpotsLeft.Value <= 0 ? "Sold out" : $"{w.SpotsLeft.Value} spots left")
-                    </span>
-                }
-                @if (hasLogo)
-                {
-                    <div class="workshop-card-logo-wrap">
-                        <img src="@w.LogoUrl" alt="@w.Name" />
-                    </div>
-                }
-                <div class="workshop-card-body">
-                    <p class="workshop-card-date">
-                        @(extraCount > 0 ? "Više termina" : next.Date.ToString("dddd, MMMM d, yyyy", new System.Globalization.CultureInfo("en-US")))
-                    </p>
-                    <h3 class="workshop-card-title">@w.Name</h3>
-                    <p class="workshop-card-desc">@w.Description</p>
-                </div>
-                <div class="workshop-card-footer">
-                    @if (!string.IsNullOrEmpty(w.Price))
-                    {
-                        <span class="workshop-price">@w.Price</span>
-                    }
-                    <span class="btn btn-outline btn-sm" style="margin-left:auto;">Detalji</span>
-                </div>
-            </a>
+            @await Html.PartialAsync("_WorkshopCard", (w, (WorkshopOccurrence?)next, extraCount))
         }
 
         @if (!Model.Workshops.Any() && !Model.ReservableWorkshops.Any())

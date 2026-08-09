@@ -1,0 +1,40 @@
+@model (Workshop Workshop, WorkshopOccurrence? NextOccurrence, int ExtraOccurrenceCount)
+@{
+    var w = Model.Workshop;
+    bool hasLogo = !string.IsNullOrEmpty(w.LogoUrl) && w.LogoUrl != "/images/workshops/placeholder-logo.png";
+}
+<a href="/workshops/@w.Slug" class="workshop-card @(hasLogo ? "has-logo" : "")">
+    <div class="workshop-card-banner">
+        @if (!string.IsNullOrEmpty(w.BannerUrl))
+        {
+            <img src="@w.BannerUrl" alt="@w.Name" />
+        }
+    </div>
+    @if (!w.IsReservable && w.SpotsLeft.HasValue && w.SpotsLeft.Value < 5)
+    {
+        <span class="workshop-card-spots @(w.SpotsLeft.Value <= 0 ? "sold-out" : "")">
+            @(w.SpotsLeft.Value <= 0 ? "Sold out" : $"{w.SpotsLeft.Value} spots left")
+        </span>
+    }
+    @if (hasLogo)
+    {
+        <div class="workshop-card-logo-wrap">
+            <img src="@w.LogoUrl" alt="@w.Name" />
+        </div>
+    }
+    <div class="workshop-card-body">
+        <p class="workshop-card-date">
+            @(w.IsReservable
+                ? "Uvijek dostupno"
+                : Model.ExtraOccurrenceCount > 0 ? "Više termina" : Model.NextOccurrence!.Date.ToString("dddd, MMMM d, yyyy", new System.Globalization.CultureInfo("en-US")))
+        </p>
+        <h3 class="workshop-card-title">@w.Name</h3>
+        <p class="workshop-card-desc">@w.Description</p>
+    </div>
+    @if (!string.IsNullOrEmpty(w.Price))
+    {
+        <div class="workshop-card-footer">
+            <span class="workshop-price">@w.Price</span>
+        </div>
+    }
+</a>
