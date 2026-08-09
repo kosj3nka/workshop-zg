@@ -74,11 +74,10 @@ public class IndexModel : PageModel
             .ToListAsync())
             .ToDictionary(r => r.Date.Date);
 
-        // Upcoming Workshops strip: non-reservable workshops with a date in the next 2 months, capped at 10
-        var twoMonthsOut = today.AddMonths(2);
+        // Upcoming Workshops strip: non-reservable workshops with any future date, capped at 10
         UpcomingWorkshops = workshopsWithOccurrences
-            .Where(w => w.Occurrences.Any(o => o.Date >= today && o.Date < twoMonthsOut))
-            .OrderBy(w => w.Occurrences.Where(o => o.Date >= today && o.Date < twoMonthsOut).Min(o => o.Date))
+            .Where(w => w.Occurrences.Any(o => o.Date >= today))
+            .OrderBy(w => w.Occurrences.Where(o => o.Date >= today).Min(o => o.Date))
             .Take(10)
             .ToList();
 
