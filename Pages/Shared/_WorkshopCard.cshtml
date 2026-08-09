@@ -26,15 +26,9 @@
         <p class="workshop-card-date">
             @(w.IsReservable
                 ? "Uvijek dostupno"
-                : Model.ExtraOccurrenceCount > 0 ? "Više termina" : Model.NextOccurrence!.Date.ToString("dddd, MMMM d, yyyy", new System.Globalization.CultureInfo("en-US")))
+                : Model.ExtraOccurrenceCount > 0 ? "Više termina" : Model.NextOccurrence!.Date.ToString("dddd, MMMM d", new System.Globalization.CultureInfo("en-US")))
         </p>
         <h3 class="workshop-card-title">@w.Name</h3>
         <p class="workshop-card-desc">@w.Description</p>
     </div>
-    @if (!string.IsNullOrEmpty(w.Price))
-    {
-        <div class="workshop-card-footer">
-            <span class="workshop-price">@w.Price</span>
-        </div>
-    }
 </a>
