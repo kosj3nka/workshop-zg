@@ -799,6 +799,28 @@ textarea.form-control { resize: vertical; min-height: 140px; }
 }
 
 /* ================================================================
+   RESPONSIVE — admin panel
+================================================================ */
+@media (max-width: 600px) {
+    /* Fixed 60px height + centered flex forced "Workshop Zagreb — Admin"
+       and the nav links to wrap mid-word and overlap. Letting the brand
+       take its own row gives both enough width to stay on one line. */
+    .admin-navbar { height: auto; flex-wrap: wrap; row-gap: 8px; padding: 14px 16px; }
+    .admin-navbar .brand { flex: 1 0 100%; }
+
+    /* Flex-shrink was squeezing tab buttons below their content width,
+       wrapping the Reservable count onto its own line. Let the tab bar
+       scroll horizontally instead of collapsing individual tabs. */
+    .admin-tabs { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-right: 24px; }
+    .admin-tab-btn { flex-shrink: 0; white-space: nowrap; }
+
+    /* Same flex-shrink issue on the Save/Cancel row — "Objavi radionicu"
+       wrapped inside its button while "Odustani" had room to spare. */
+    .form-actions { flex-direction: column; }
+    .form-actions .btn { width: 100%; }
+}
+
+/* ================================================================
    NAV LOGO IMAGE
 ================================================================ */
 .nav-logo-img {
