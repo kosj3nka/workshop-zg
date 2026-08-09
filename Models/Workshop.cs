@@ -20,6 +20,11 @@ public class Workshop
     public string? Price { get; set; }
     public int? MaxParticipants { get; set; }
 
+    // One ticket-purchase link for the whole workshop (applies to every occurrence) —
+    // not per-date, since a workshop is sold through a single event page regardless
+    // of how many times it repeats.
+    public string? TicketUrl { get; set; }
+
     // Slug is the URL-friendly version of the name: "Watercolour Basics" -> "watercolour-basics"
     // Used in the URL: /workshops/watercolour-basics
     public required string Slug { get; set; }

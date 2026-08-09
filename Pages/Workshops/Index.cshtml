@@ -62,13 +62,6 @@
                         @(extraCount > 0 ? "Više termina" : next.Date.ToString("dddd, MMMM d, yyyy", new System.Globalization.CultureInfo("en-US")))
                     </p>
                     <h3 class="workshop-card-title">@w.Name</h3>
-                    @if (extraCount == 0)
-                    {
-                        <p class="workshop-card-time">
-                            @next.StartTime.ToString(@"hh\:mm")
-                            @(next.EndTime.HasValue ? " – " + next.EndTime.Value.ToString(@"hh\:mm") : "")
-                        </p>
-                    }
                     <p class="workshop-card-desc">@w.Description</p>
                 </div>
                 <div class="workshop-card-footer">

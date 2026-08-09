@@ -72,6 +72,7 @@ public class WorkshopEditModel : PageModel
                 BookingValue = workshop.BookingValue ?? "",
                 Description = workshop.Description,
                 Price = workshop.Price,
+                TicketUrl = workshop.TicketUrl,
                 MaxParticipants = workshop.MaxParticipants,
                 InstagramPostUrl = workshop.InstagramPostUrl,
                 HostName = workshop.HostName,
@@ -137,6 +138,7 @@ public class WorkshopEditModel : PageModel
                 BookingValue = Input.IsReservable ? Input.BookingValue : null,
                 Description = Input.Description,
                 Price = Input.Price,
+                TicketUrl = Input.TicketUrl,
                 MaxParticipants = Input.MaxParticipants,
                 InstagramPostUrl = Input.InstagramPostUrl ?? "",
                 HostName = Input.HostName,
@@ -160,7 +162,6 @@ public class WorkshopEditModel : PageModel
                     Date = NewOccurrence.Date,
                     StartTime = NewOccurrence.StartTime,
                     EndTime = NewOccurrence.EndTime,
-                    EntrioUrl = NewOccurrence.EntrioUrl,
                 };
                 _db.WorkshopOccurrences.Add(firstOccurrence);
                 await _db.SaveChangesAsync();
@@ -187,6 +188,7 @@ public class WorkshopEditModel : PageModel
             workshop.BookingValue = Input.IsReservable ? Input.BookingValue : null;
             workshop.Description = Input.Description;
             workshop.Price = Input.Price;
+            workshop.TicketUrl = Input.TicketUrl;
             workshop.MaxParticipants = Input.MaxParticipants;
             workshop.InstagramPostUrl = Input.InstagramPostUrl ?? "";
             workshop.HostName = Input.HostName;
@@ -230,7 +232,6 @@ public class WorkshopEditModel : PageModel
             Date = NewOccurrence.Date,
             StartTime = NewOccurrence.StartTime,
             EndTime = NewOccurrence.EndTime,
-            EntrioUrl = NewOccurrence.EntrioUrl,
         };
         _db.WorkshopOccurrences.Add(newOccurrence);
         await _db.SaveChangesAsync();
@@ -240,7 +241,7 @@ public class WorkshopEditModel : PageModel
         return RedirectToPage(new { action = "edit", id = workshopId });
     }
 
-    public async Task<IActionResult> OnPostUpdateOccurrenceAsync(int occurrenceId, int workshopId, DateTime occDate, TimeSpan occStartTime, TimeSpan? occEndTime, string? occEntrioUrl, bool sendEmail = true)
+    public async Task<IActionResult> OnPostUpdateOccurrenceAsync(int occurrenceId, int workshopId, DateTime occDate, TimeSpan occStartTime, TimeSpan? occEndTime, bool sendEmail = true)
     {
         var auth = CheckAuth(); if (auth != null) return auth;
 
@@ -257,7 +258,6 @@ public class WorkshopEditModel : PageModel
             occurrence.Date = occDate;
             occurrence.StartTime = occStartTime;
             occurrence.EndTime = occEndTime;
-            occurrence.EntrioUrl = occEntrioUrl;
             await _db.SaveChangesAsync();
 
             if (dateTimeChanged)
@@ -453,6 +453,7 @@ public class WorkshopInputModel
     public string BookingValue { get; set; } = "";
     public string Description { get; set; } = "";
     public string? Price { get; set; }
+    public string? TicketUrl { get; set; }
     public int? MaxParticipants { get; set; }
     public string InstagramPostUrl { get; set; } = "";
     public string? HostName { get; set; }
@@ -469,5 +470,4 @@ public class OccurrenceInputModel
     public DateTime Date { get; set; } = DateTime.Today;
     public TimeSpan StartTime { get; set; } = new TimeSpan(14, 0, 0);
     public TimeSpan? EndTime { get; set; }
-    public string? EntrioUrl { get; set; }
 }

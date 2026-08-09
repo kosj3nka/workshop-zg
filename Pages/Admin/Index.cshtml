@@ -62,7 +62,7 @@
                             <h3>@w.Name</h3>
                             <p>
                                 @next.Date.ToString("dd. MM. yyyy") u @next.StartTime.ToString(@"hh\:mm")
-                                @(!string.IsNullOrEmpty(w.Price) ? $" · {w.Price}" : " · Cijena po upitu")
+                                @(!string.IsNullOrEmpty(w.Price) ? $" · {w.Price}" : "")
                                 @(extraCount > 0 ? $" · +{extraCount} termina" : "")
                             </p>
                         </div>
@@ -111,7 +111,7 @@
                         }
                         <div class="admin-list-item-info">
                             <h3>@w.Name</h3>
-                            <p>@(!string.IsNullOrEmpty(w.Price) ? w.Price : "Cijena po upitu") @(w.MaxParticipants.HasValue ? $" · max {w.MaxParticipants}" : "")</p>
+                            <p>@string.Join(" · ", new[] { w.Price, w.MaxParticipants.HasValue ? $"max {w.MaxParticipants}" : null }.Where(s => !string.IsNullOrEmpty(s)))</p>
                         </div>
                     </div>
                     <div class="admin-list-item-actions" onclick="event.stopPropagation()">
@@ -156,7 +156,10 @@
                         }
                         <div class="admin-list-item-info">
                             <h3>@w.Name</h3>
-                            <p>@(!string.IsNullOrEmpty(w.Price) ? w.Price : "Cijena po upitu")</p>
+                            @if (!string.IsNullOrEmpty(w.Price))
+                            {
+                                <p>@w.Price</p>
+                            }
                         </div>
                     </div>
                     <div class="admin-list-item-actions" onclick="event.stopPropagation()">

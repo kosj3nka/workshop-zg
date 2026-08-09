@@ -110,6 +110,11 @@ using (var scope = app.Services.CreateScope())
     try { db.Database.ExecuteSqlRaw("ALTER TABLE Workshops ADD COLUMN BookingValue TEXT"); }
     catch { /* column already present — safe to ignore */ }
 
+    // TicketUrl column added Aug 2026 — one ticket link per workshop, replacing the
+    // old per-occurrence WorkshopOccurrences.EntrioUrl (see backfill below)
+    try { db.Database.ExecuteSqlRaw("ALTER TABLE Workshops ADD COLUMN TicketUrl TEXT"); }
+    catch { /* column already present — safe to ignore */ }
+
     db.Database.ExecuteSqlRaw(@"
         CREATE TABLE IF NOT EXISTS WorkshopOccurrences (
             Id         INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -117,7 +122,6 @@ using (var scope = app.Services.CreateScope())
             Date       TEXT    NOT NULL,
             StartTime  TEXT    NOT NULL,
             EndTime    TEXT,
-            EntrioUrl  TEXT,
             CreatedAt  TEXT    NOT NULL,
             FOREIGN KEY (WorkshopId) REFERENCES Workshops(Id) ON DELETE CASCADE
         )");
@@ -170,6 +174,28 @@ using (var scope = app.Services.CreateScope())
         }
         catch { /* legacy columns don't exist on a fresh database — nothing to backfill */ }
     }
+
+    // One-time-only: pull each workshop's ticket link up from its occurrences (there was
+    // only ever one Entrio link per workshop in practice, just entered per-date) into the
+    // new Workshops.TicketUrl column, then drop the now-superseded per-occurrence column.
+    var ticketUrlBackfillInserted = db.Database.ExecuteSqlRaw(
+        "INSERT OR IGNORE INTO SeedFlags (Key, Value) VALUES ('TicketUrlBackfilled', 1)");
+    if (ticketUrlBackfillInserted > 0)
+    {
+        try
+        {
+            db.Database.ExecuteSqlRaw(@"
+                UPDATE Workshops
+                SET TicketUrl = (
+                    SELECT EntrioUrl FROM WorkshopOccurrences
+                    WHERE WorkshopOccurrences.WorkshopId = Workshops.Id AND EntrioUrl IS NOT NULL
+                    LIMIT 1)
+                WHERE TicketUrl IS NULL");
+        }
+        catch { /* WorkshopOccurrences.EntrioUrl already dropped — nothing to backfill */ }
+    }
+    try { db.Database.ExecuteSqlRaw("ALTER TABLE WorkshopOccurrences DROP COLUMN EntrioUrl"); }
+    catch { /* column doesn't exist — safe to ignore */ }
 
     // Legacy Date/StartTime/EndTime/EntrioUrl columns on Workshops predate the occurrence-model
     // split and are no longer written by any code path — every insert into Workshops now omits

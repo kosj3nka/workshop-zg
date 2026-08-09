@@ -87,16 +87,12 @@
                             @occ.Date.ToString("ddd, MMM d", new System.Globalization.CultureInfo("en-US"))
                         </p>
                         <h3 class="workshop-card-title">@w.Name</h3>
-                        <p class="workshop-card-time">
-                            @occ.StartTime.ToString(@"hh\:mm")
-                            @(occ.EndTime.HasValue ? " – " + occ.EndTime.Value.ToString(@"hh\:mm") : "")
-                        </p>
                         <p class="workshop-card-desc">@w.Description</p>
                     </div>
                     <div class="workshop-card-footer">
-                        <span class="workshop-price">@(!string.IsNullOrEmpty(w.Price) ? w.Price : "Cijena po upitu")</span>
                         @if (!string.IsNullOrEmpty(w.Price))
                         {
+                            <span class="workshop-price">@w.Price</span>
                             <span class="btn btn-outline btn-sm">Reserve</span>
                         }
                     </div>

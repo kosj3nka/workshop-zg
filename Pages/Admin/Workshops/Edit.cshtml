@@ -48,6 +48,23 @@
                class="form-control" required placeholder="npr. Akvarel za početnike" />
     </div>
 
+    <div class="form-group">
+        <label class="form-toggle">
+            <!--
+                Checkbox must come BEFORE its hidden false-fallback in source order.
+                When checked, the browser submits both "true" (checkbox) and "false"
+                (hidden) for this name; ASP.NET Core's model binder takes the FIRST
+                submitted value for a repeated key. Hidden-before-checkbox meant the
+                bound value was always "false", even when the box was visibly checked.
+            -->
+            <input type="checkbox" id="chk-reservable" name="Input.IsReservable" value="true"
+                   @(Model.Input.IsReservable ? "checked" : "")
+                   onchange="toggleReservable(this.checked)" />
+            <input type="hidden" name="Input.IsReservable" value="false" />
+            <span>Rezervabilno (rezervira se za grupu, bez specifičnog datuma)</span>
+        </label>
+    </div>
+
     @if (!isNew && !Model.Input.IsReservable)
     {
         <div class="form-group">
@@ -76,13 +93,9 @@
                             <label class="form-label">Početak</label>
                             <input type="time" form="occ-edit-@occ.Id" name="occStartTime" value="@occ.StartTime.ToString(@"hh\:mm")" class="form-control" required />
                         </div>
-                        <div class="form-group">
+                        <div class="form-group" style="flex:1;min-width:120px;">
                             <label class="form-label">Kraj</label>
                             <input type="time" form="occ-edit-@occ.Id" name="occEndTime" value="@(occ.EndTime.HasValue ? occ.EndTime.Value.ToString(@"hh\:mm") : "")" class="form-control" />
-                        </div>
-                        <div class="form-group" style="flex:1;min-width:180px;">
-                            <label class="form-label">Entrio URL</label>
-                            <input type="url" form="occ-edit-@occ.Id" name="occEntrioUrl" value="@occ.EntrioUrl" class="form-control" placeholder="https://entrio.hr/event/..." />
                         </div>
                         @if (Model.IsArchivedWorkshop)
                         {
@@ -117,13 +130,9 @@
                     <label class="form-label">Početak</label>
                     <input type="time" form="occ-add" name="NewOccurrence.StartTime" value="14:00" class="form-control" required />
                 </div>
-                <div class="form-group">
+                <div class="form-group" style="flex:1;min-width:120px;">
                     <label class="form-label">Kraj</label>
                     <input type="time" form="occ-add" name="NewOccurrence.EndTime" class="form-control" />
-                </div>
-                <div class="form-group" style="flex:1;min-width:180px;">
-                    <label class="form-label">Entrio URL</label>
-                    <input type="url" form="occ-add" name="NewOccurrence.EntrioUrl" class="form-control" placeholder="https://entrio.hr/event/..." />
                 </div>
                 <!-- Disabled until a date is actually picked — this used to silently
                      no-op on click otherwise (server just redirected back with nothing
@@ -148,23 +157,6 @@
         </div>
     }
 
-    <div class="form-group">
-        <label class="form-toggle">
-            <!--
-                Checkbox must come BEFORE its hidden false-fallback in source order.
-                When checked, the browser submits both "true" (checkbox) and "false"
-                (hidden) for this name; ASP.NET Core's model binder takes the FIRST
-                submitted value for a repeated key. Hidden-before-checkbox meant the
-                bound value was always "false", even when the box was visibly checked.
-            -->
-            <input type="checkbox" id="chk-reservable" name="Input.IsReservable" value="true"
-                   @(Model.Input.IsReservable ? "checked" : "")
-                   onchange="toggleReservable(this.checked)" />
-            <input type="hidden" name="Input.IsReservable" value="false" />
-            <span>Rezervabilno (rezervira se za grupu, bez specifičnog datuma)</span>
-        </label>
-    </div>
-
     @if (isNew)
     {
         <div id="date-row" style="display:@(Model.Input.IsReservable ? "none" : "")">
@@ -185,11 +177,6 @@
                 <input type="time" name="NewOccurrence.EndTime"
                        value="@(Model.NewOccurrence.EndTime.HasValue ? Model.NewOccurrence.EndTime.Value.ToString(@"hh\:mm") : "")"
                        class="form-control" />
-            </div>
-            <div class="form-group">
-                <label class="form-label">Entrio URL (ulaznice) <span style="opacity:0.5;font-weight:400;">(opcionalno)</span></label>
-                <input type="url" name="NewOccurrence.EntrioUrl" value="@Model.NewOccurrence.EntrioUrl"
-                       class="form-control" placeholder="https://entrio.hr/event/..." />
             </div>
         </div>
     }
@@ -215,6 +202,7 @@
     function toggleReservable(isReservable) {
         var dateRow = document.getElementById('date-row');
         if (dateRow) dateRow.style.display = isReservable ? 'none' : '';
+        document.getElementById('ticket-url-row').style.display = isReservable ? 'none' : '';
         document.getElementById('reservable-row').style.display = isReservable ? '' : 'none';
         var dateInput = document.getElementById('input-date');
         var timeInput = document.getElementById('input-starttime');
@@ -231,6 +219,13 @@
         <input type="text" name="Input.Price" value="@Model.Input.Price"
                class="form-control" maxlength="40" placeholder="npr. 25 €, 20-35 €, ili Po dogovoru" />
         <p class="form-hint">Slobodan tekst — može biti fiksna cijena, raspon ili "Po dogovoru".</p>
+    </div>
+
+    <div id="ticket-url-row" class="form-group" style="display:@(Model.Input.IsReservable ? "none" : "")">
+        <label class="form-label">Link za ulaznice <span style="opacity:0.5;font-weight:400;">(opcionalno)</span></label>
+        <input type="url" name="Input.TicketUrl" value="@Model.Input.TicketUrl"
+               class="form-control" placeholder="https://entrio.hr/event/..." />
+        <p class="form-hint">Vrijedi za sve termine ove radionice.</p>
     </div>
 
     <div class="form-group">

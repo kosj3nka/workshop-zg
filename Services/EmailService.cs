@@ -69,7 +69,9 @@ public class EmailService : IEmailService
             return new EmailBatchResult(0, subscribers.Count, false);
         }
 
-        var price   = !string.IsNullOrEmpty(workshop.Price) ? workshop.Price : "Besplatno";
+        var priceRow = !string.IsNullOrEmpty(workshop.Price)
+            ? $"<tr><td style='padding:5px 0;color:#888;font-size:0.85rem;width:100px;'>Cijena</td><td style='font-weight:500;'>{workshop.Price}</td></tr>"
+            : "";
         var maxPax  = workshop.MaxParticipants.HasValue
             ? $"<tr><td style='padding:5px 0;color:#888;font-size:0.85rem;width:100px;'>Mjesta</td><td style='font-weight:500;'>max {workshop.MaxParticipants}</td></tr>"
             : "";
@@ -87,18 +89,18 @@ public class EmailService : IEmailService
             dateRows = $"""
                 <tr><td style="padding:5px 0;color:#888;font-size:0.85rem;width:100px;">Datum</td><td style="font-weight:500;">{date}</td></tr>
                 <tr><td style="padding:5px 0;color:#888;font-size:0.85rem;">Vrijeme</td><td style="font-weight:500;">{time}{endTime}</td></tr>
-                <tr><td style="padding:5px 0;color:#888;font-size:0.85rem;">Cijena</td><td style="font-weight:500;">{price}</td></tr>
+                {priceRow}
                 {maxPax}
                 {hostRow}
                 """;
-            actionBtn = !string.IsNullOrEmpty(occurrence.EntrioUrl)
-                ? $"""<p style="margin:28px 0 8px;"><a href="{occurrence.EntrioUrl}" style="background:#c8a96e;color:#fff;padding:12px 32px;text-decoration:none;display:inline-block;font-size:0.9rem;font-weight:600;">Kupi ulaznicu</a></p>"""
+            actionBtn = !string.IsNullOrEmpty(workshop.TicketUrl)
+                ? $"""<p style="margin:28px 0 8px;"><a href="{workshop.TicketUrl}" style="background:#c8a96e;color:#fff;padding:12px 32px;text-decoration:none;display:inline-block;font-size:0.9rem;font-weight:600;">Kupi ulaznicu</a></p>"""
                 : "";
         }
         else
         {
             dateRows = $"""
-                <tr><td style="padding:5px 0;color:#888;font-size:0.85rem;width:100px;">Cijena</td><td style="font-weight:500;">{price}</td></tr>
+                {priceRow}
                 {maxPax}
                 {hostRow}
                 """;

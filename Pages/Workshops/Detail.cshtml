@@ -54,13 +54,13 @@
         "@@type": "Organization",
         "name": "Workshop Zagreb",
         "url": "https://workshopzagreb.com"
-      }@((_numericPrice.HasValue && !string.IsNullOrEmpty(_occ.EntrioUrl)) ? Html.Raw($@",
+      }@((_numericPrice.HasValue && !string.IsNullOrEmpty(_w.TicketUrl)) ? Html.Raw($@",
       ""offers"": {{
         ""@@type"": ""Offer"",
         ""price"": ""{_numericPrice:0}"",
         ""priceCurrency"": ""EUR"",
         ""availability"": ""https://schema.org/InStock"",
-        ""url"": {J(_occ.EntrioUrl)}
+        ""url"": {J(_w.TicketUrl)}
       }}") : Html.Raw(""))
     }
     </script>
@@ -153,7 +153,10 @@ else
 
             <aside class="workshop-sidebar">
                 <div class="sidebar-card">
-                    <p class="sidebar-price">@(!string.IsNullOrEmpty(w.Price) ? w.Price : "Cijena po upitu")</p>
+                    @if (!string.IsNullOrEmpty(w.Price))
+                    {
+                        <p class="sidebar-price">@w.Price</p>
+                    }
                     <p class="sidebar-seats">
                         @(w.MaxParticipants.HasValue ? $"Max {w.MaxParticipants} participants" : "Open registration")
                     </p>
@@ -174,9 +177,9 @@ else
 
                         if (!string.IsNullOrEmpty(w.Price))
                         {
-                            if (!string.IsNullOrEmpty(nextOcc.EntrioUrl))
+                            if (!string.IsNullOrEmpty(w.TicketUrl))
                             {
-                                <a href="@nextOcc.EntrioUrl" target="_blank" rel="noopener" class="btn btn-primary">
+                                <a href="@w.TicketUrl" target="_blank" rel="noopener" class="btn btn-primary">
                                     Buy ticket (Entrio) ↗
                                 </a>
                             }

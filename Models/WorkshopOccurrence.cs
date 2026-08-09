@@ -12,7 +12,6 @@ public class WorkshopOccurrence
     public DateTime Date { get; set; }
     public TimeSpan StartTime { get; set; }
     public TimeSpan? EndTime { get; set; }
-    public string? EntrioUrl { get; set; }      // link to Entrio ticket page for this date
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
