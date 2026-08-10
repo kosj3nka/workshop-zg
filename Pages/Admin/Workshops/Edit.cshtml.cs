@@ -126,6 +126,11 @@ public class WorkshopEditModel : PageModel
                 ModelState.AddModelError("NewOccurrence.Date", "Date is required for a non-reservable workshop.");
                 return Page();
             }
+            if (!_files.IsSupportedImage(BannerFile) || (LogoFile != null && !_files.IsSupportedImage(LogoFile)))
+            {
+                ModelState.AddModelError("BannerFile", "Unsupported image file type. Use JPG, PNG, WEBP or GIF.");
+                return Page();
+            }
 
             var bannerUrl = await _files.SaveImageAsync(BannerFile, "workshops");
             var logoUrl   = LogoFile != null
@@ -196,6 +201,13 @@ public class WorkshopEditModel : PageModel
             workshop.HostName = Input.HostName;
             workshop.HostInstagram = Input.HostInstagram;
             workshop.HostWebsite = Input.HostWebsite;
+
+            if ((BannerFile != null && !_files.IsSupportedImage(BannerFile)) ||
+                (LogoFile != null && !_files.IsSupportedImage(LogoFile)))
+            {
+                ModelState.AddModelError("BannerFile", "Unsupported image file type. Use JPG, PNG, WEBP or GIF.");
+                return Page();
+            }
 
             if (BannerFile != null)
             {
@@ -351,7 +363,7 @@ public class WorkshopEditModel : PageModel
 
         foreach (var file in PhotoFiles)
         {
-            if (file.Length > 0)
+            if (file.Length > 0 && _files.IsSupportedImage(file))
             {
                 var url = await _files.SaveImageAsync(file, "workshops");
                 _db.WorkshopPhotos.Add(new WorkshopPhoto

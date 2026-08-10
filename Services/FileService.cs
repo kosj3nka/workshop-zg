@@ -4,6 +4,7 @@ public interface IFileService
 {
     Task<string> SaveImageAsync(IFormFile file, string subfolder);
     void DeleteImage(string relativePath);
+    bool IsSupportedImage(IFormFile file);
 }
 
 // On Azure you'd swap the body of SaveImageAsync to upload to Azure Blob Storage instead.
@@ -25,13 +26,27 @@ public class FileService : IFileService
             : Path.Combine(_env.WebRootPath, "images");
     }
 
+    // Static files are served back by extension (StaticFileMiddleware infers Content-Type
+    // from it), so an unrestricted extension would let an admin upload e.g. .html/.svg that
+    // a browser executes as a page instead of displaying as an image — restrict to images only.
+    private static readonly HashSet<string> AllowedExtensions = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ".jpg", ".jpeg", ".png", ".webp", ".gif"
+    };
+
+    public bool IsSupportedImage(IFormFile file) =>
+        AllowedExtensions.Contains(Path.GetExtension(file.FileName).ToLowerInvariant());
+
     public async Task<string> SaveImageAsync(IFormFile file, string subfolder)
     {
+        var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+        if (!AllowedExtensions.Contains(extension))
+            throw new InvalidOperationException($"Unsupported image file type: {extension}");
+
         var uploadsFolder = Path.Combine(_imagesRoot, subfolder);
         Directory.CreateDirectory(uploadsFolder);
 
         // Create a unique filename to prevent collisions
-        var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
         var fileName = $"{Guid.NewGuid()}{extension}";
         var fullPath = Path.Combine(uploadsFolder, fileName);
 

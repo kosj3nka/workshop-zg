@@ -165,7 +165,7 @@ else
                     {
                         <p class="sidebar-price">@w.Price</p>
                     }
-                    @if (w.MaxParticipants.HasValue)
+                    @if (!w.IsReservable && w.MaxParticipants.HasValue)
                     {
                         <p class="sidebar-seats">Max @w.MaxParticipants participants</p>
                     }

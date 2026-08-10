@@ -248,7 +248,7 @@ h1, h2, h3 { font-family: var(--font-serif); line-height: 1.2; color: var(--espr
    corner without dipping into the card body below it. */
 .workshop-card-logo-wrap {
     position: absolute;
-    top: 90px;
+    top: 112px;
     right: 14px;
     z-index: 2;
     line-height: 0;

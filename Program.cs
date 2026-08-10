@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using WorkshopZagreb.Data;
@@ -48,9 +49,23 @@ builder.Services.AddSession(options =>
     options.IdleTimeout = TimeSpan.FromHours(8);
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
 });
 
 var app = builder.Build();
+
+// Azure App Service terminates TLS at its edge and forwards plain HTTP internally.
+// Without this, Kestrel sees every request as HTTP — breaking UseHttpsRedirection,
+// the Secure cookie flag above, and per-IP lockout (RemoteIpAddress would be the
+// proxy's address, not the client's). KnownNetworks/KnownProxies are cleared because
+// Azure's front-end IP isn't fixed/known ahead of time.
+var forwardedHeadersOptions = new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+};
+forwardedHeadersOptions.KnownNetworks.Clear();
+forwardedHeadersOptions.KnownProxies.Clear();
+app.UseForwardedHeaders(forwardedHeadersOptions);
 
 if (!app.Environment.IsDevelopment())
 {
