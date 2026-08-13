@@ -75,9 +75,32 @@ public class EmailService : IEmailService
         var maxPax  = workshop.MaxParticipants.HasValue
             ? $"<tr><td style='padding:5px 0;color:#888;font-size:0.85rem;width:100px;'>Mjesta</td><td style='font-weight:500;'>max {workshop.MaxParticipants}</td></tr>"
             : "";
-        var hostRow = !string.IsNullOrEmpty(workshop.HostName)
-            ? $"<tr><td style='padding:5px 0;color:#888;font-size:0.85rem;'>Voditelj</td><td style='font-weight:500;'>{workshop.HostName}</td></tr>"
+        var spotsRow = (!workshop.IsReservable && workshop.SpotsLeft.HasValue && workshop.SpotsLeft.Value < 5)
+            ? $"<tr><td style='padding:5px 0;'></td><td style='font-weight:600;font-size:0.85rem;color:{(workshop.SpotsLeft.Value <= 0 ? "#DC2626" : "#C1683A")};'>{(workshop.SpotsLeft.Value <= 0 ? "Rasprodano" : $"Samo još {workshop.SpotsLeft.Value} mjesta")}</td></tr>"
             : "";
+
+        var hostSocial = "";
+        if (!string.IsNullOrEmpty(workshop.HostInstagram))
+            hostSocial += $"""<a href="{workshop.HostInstagram}" style="color:#c8a96e;text-decoration:none;font-size:0.8rem;margin-left:10px;">Instagram</a>""";
+        if (!string.IsNullOrEmpty(workshop.HostWebsite))
+            hostSocial += $"""<a href="{workshop.HostWebsite}" style="color:#c8a96e;text-decoration:none;font-size:0.8rem;margin-left:10px;">Web</a>""";
+        var hostRow = !string.IsNullOrEmpty(workshop.HostName)
+            ? $"<tr><td style='padding:5px 0;color:#888;font-size:0.85rem;'>Voditelj</td><td style='font-weight:500;'>{workshop.HostName}{hostSocial}</td></tr>"
+            : "";
+
+        var bannerHtml = "";
+        if (!string.IsNullOrEmpty(workshop.BannerUrl))
+        {
+            var logoOverlay = !string.IsNullOrEmpty(workshop.LogoUrl)
+                ? $"""<img src="{workshop.LogoUrl}" alt="{workshop.Name} logo" style="display:block;width:88px;height:88px;object-fit:contain;background:#fff;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.15);margin:-44px 24px 0 auto;position:relative;" />"""
+                : "";
+            bannerHtml = $"""
+                <div style="margin-bottom:{(string.IsNullOrEmpty(logoOverlay) ? "24" : "44")}px;">
+                  <img src="{workshop.BannerUrl}" alt="{workshop.Name}" style="display:block;width:100%;max-height:220px;object-fit:cover;" />
+                  {logoOverlay}
+                </div>
+                """;
+        }
 
         string dateRows;
         string actionBtn;
@@ -91,6 +114,7 @@ public class EmailService : IEmailService
                 <tr><td style="padding:5px 0;color:#888;font-size:0.85rem;">Vrijeme</td><td style="font-weight:500;">{time}{endTime}</td></tr>
                 {priceRow}
                 {maxPax}
+                {spotsRow}
                 {hostRow}
                 """;
             actionBtn = !string.IsNullOrEmpty(workshop.TicketUrl)
@@ -102,6 +126,7 @@ public class EmailService : IEmailService
             dateRows = $"""
                 {priceRow}
                 {maxPax}
+                {spotsRow}
                 {hostRow}
                 """;
             string bookHref;
@@ -143,6 +168,7 @@ public class EmailService : IEmailService
             var unsub = UnsubscribeUrl(sub.Token);
             var html = $"""
                 <div style="font-family:Inter,Arial,sans-serif;max-width:540px;margin:0 auto;color:#1a1a1a;padding:32px 0;">
+                  {bannerHtml}
                   <p style="font-size:0.72rem;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:#c8a96e;margin-bottom:8px;">{kicker}</p>
                   <h1 style="font-family:Georgia,'Playfair Display',serif;font-size:1.9rem;line-height:1.2;margin:0 0 24px;">{workshop.Name}</h1>
 
