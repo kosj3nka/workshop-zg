@@ -85,10 +85,9 @@
     <footer class="footer">
         <div class="footer-inner">
             <div class="footer-brand">
-                <img src="/images/justLogo.png" alt="Workshop Zagreb"
-                     style="height:32px; filter:brightness(0) invert(1); opacity:0.75; margin-bottom:10px;" />
-                <p>Mornings for coffee. <br />Afternoons for creativity.</p>
-                
+                    <img src="/images/footerMoto.png" alt="Mornings for coffee. Afternoons for creativity."
+                     style="width:180px; max-width:100%; filter:brightness(0) invert(1); opacity:0.75;" />
+
             </div>
             <div class="footer-links">
                 <a href="/workshops">Workshops</a>
@@ -102,6 +101,10 @@
                     <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-7.58 8-13a8 8 0 1 0-16 0c0 5.42 8 13 8 13z"/><circle cx="12" cy="9" r="3"/></svg>
                     Henrika Degena 2, Zagreb
                 </a>
+                <div class="footer-hours">
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
+                    <span><strong>Café:</strong> Mon – Sat, 08:00 – 15:00<br /><strong>Workshops:</strong> daily from 15:00</span>
+                </div>
                 <div class="footer-social-icons">
                     <a href="https://www.instagram.com/workshop.zagreb/" target="_blank" rel="noopener" aria-label="Instagram" class="icon-link">
                         <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><rect x="2" y="2" width="20" height="20" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.5" cy="6.5" r="1.2"/></svg>
@@ -122,14 +125,18 @@
          style="display:none">
         <div class="popup-card" @@click.stop>
             <button class="popup-close" @@click="dismiss()">✕</button>
-            <p class="popup-eyebrow">Newsletter</p>
-            <h2 class="popup-title">Budite prvi kada stignu nove radionice.</h2>
-            <p class="popup-sub">Obavijest čim otvorimo novu radionicu. Jednom ili dvaput mjesečno. Bez spama.</p>
-            <form class="popup-form" @@submit.prevent="subscribe($event)">
-                <input type="email" name="email" placeholder="your@email.com" required class="popup-input" />
-                <button type="submit" class="btn btn-primary" x-text="submitted ? 'Check your inbox ✓' : 'Subscribe'"></button>
-            </form>
-            <p class="popup-gdpr">By subscribing you accept our <a href="/privacy">privacy policy</a>.</p>
+            <div class="popup-media">
+                <img src="~/images/insideDrawing.png" alt="" />
+            </div>
+            <div class="popup-body">
+                <p class="popup-eyebrow">Newsletter</p>
+                <h2 class="popup-title">Budite prvi kada stignu nove radionice.</h2>
+                <form class="popup-form" @@submit.prevent="subscribe($event)">
+                    <input type="email" name="email" placeholder="your@email.com" required class="popup-input" />
+                    <button type="submit" class="btn btn-primary" x-text="submitted ? 'Check your inbox ✓' : 'Subscribe'"></button>
+                </form>
+                <p class="popup-gdpr">By subscribing you accept our <a href="/privacy">privacy policy</a>.</p>
+            </div>
         </div>
     </div>
 
