@@ -287,6 +287,28 @@ using (var scope = app.Services.CreateScope())
     {
         MenuSeed.Seed(db);
     }
+
+    db.Database.ExecuteSqlRaw(@"
+        CREATE TABLE IF NOT EXISTS Promos (
+            Id           INTEGER PRIMARY KEY AUTOINCREMENT,
+            ImageUrl     TEXT    NOT NULL,
+            IsVideo      INTEGER NOT NULL DEFAULT 0,
+            Heading      TEXT,
+            Subheading   TEXT,
+            FocalX       REAL    NOT NULL DEFAULT 50,
+            FocalY       REAL    NOT NULL DEFAULT 50,
+            DisplayOrder INTEGER NOT NULL DEFAULT 0
+        )");
+
+    // FocalX/FocalY/IsVideo/Subheading added after Promos already shipped — ALTER TABLE is a no-op if they exist
+    try { db.Database.ExecuteSqlRaw("ALTER TABLE Promos ADD COLUMN FocalX REAL NOT NULL DEFAULT 50"); }
+    catch { /* column already present — safe to ignore */ }
+    try { db.Database.ExecuteSqlRaw("ALTER TABLE Promos ADD COLUMN FocalY REAL NOT NULL DEFAULT 50"); }
+    catch { /* column already present — safe to ignore */ }
+    try { db.Database.ExecuteSqlRaw("ALTER TABLE Promos ADD COLUMN IsVideo INTEGER NOT NULL DEFAULT 0"); }
+    catch { /* column already present — safe to ignore */ }
+    try { db.Database.ExecuteSqlRaw("ALTER TABLE Promos ADD COLUMN Subheading TEXT"); }
+    catch { /* column already present — safe to ignore */ }
 }
 
 app.Run();

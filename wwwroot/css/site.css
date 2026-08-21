@@ -877,6 +877,48 @@ textarea.form-control { resize: vertical; min-height: 140px; }
 /* ================================================================
    PHOTO STRIP
 ================================================================ */
+/* ===== PROMO CAROUSEL ===== */
+.promo-carousel { position: relative; height: 420px; overflow: hidden; border-bottom: 1px solid var(--border); }
+.promo-slide { position: absolute; inset: 0; opacity: 0; transition: opacity 0.8s ease; }
+.promo-slide--active { opacity: 1; }
+.promo-slide img, .promo-slide video { width: 100%; height: 100%; object-fit: cover; }
+.promo-slide-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.4) 100%);
+}
+.promo-slide-text {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    text-align: center; padding: 0 24px; max-width: 90%;
+}
+.promo-slide-heading {
+    color: white; font-family: var(--font-serif);
+    font-size: clamp(2rem, 4.5vw, 3.6rem); font-weight: 400; font-style: italic;
+    line-height: 1.12; letter-spacing: -0.01em;
+    text-shadow: 0 2px 12px rgba(0,0,0,0.35);
+}
+.promo-slide-subheading {
+    color: white; font-family: var(--font-sans);
+    font-size: clamp(0.95rem, 1.6vw, 1.15rem); font-weight: 500;
+    letter-spacing: 0.02em; margin-top: 10px;
+    text-shadow: 0 1px 8px rgba(0,0,0,0.3);
+}
+
+/* Admin crop preview — same object-fit:cover math as .promo-carousel above,
+   but sized by aspect-ratio (≈ the 1400×420 desktop banner) instead of a fixed
+   pixel height, since the admin form is much narrower than the live page. */
+.promo-preview-box {
+    position: relative; width: 100%; aspect-ratio: 10 / 3;
+    overflow: hidden; border-radius: 8px;
+    background: var(--cream); border: 1px solid var(--border);
+}
+.promo-preview-box img, .promo-preview-box video { width: 100%; height: 100%; object-fit: cover; display: block; }
+.promo-preview-box .promo-slide-heading { font-size: 1.6rem; }
+.promo-preview-box .promo-slide-subheading { font-size: 0.9rem; }
+.promo-preview-empty {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    color: var(--charcoal); opacity: 0.4; font-size: 0.85rem;
+}
+
 .photo-strip { overflow: hidden; border-bottom: 1px solid var(--border); }
 .photo-strip-inner {
     display: grid;
@@ -1365,6 +1407,11 @@ a.cal-day:hover .cal-event { color: var(--espresso); }
 }
 
 @media (max-width: 640px) {
+    .promo-carousel { height: 260px; }
+    .promo-slide-heading { font-size: 1.8rem; }
+    .promo-slide-text { padding: 0 12px; max-width: 96%; }
+    .promo-slide-subheading { margin-top: 6px; }
+
     .photo-strip-inner { grid-template-columns: 1fr; height: auto; gap: 1px; }
     .photo-strip-item  { height: auto; aspect-ratio: 4 / 3; }
     .photo-strip-item--tall { height: auto; aspect-ratio: 4 / 3; margin-top: 0; }

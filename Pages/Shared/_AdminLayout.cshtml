@@ -7,7 +7,7 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="~/css/site.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="icon" type="image/png" href="/images/justLogo.png" />
 </head>
 <body class="admin-body">
@@ -27,6 +27,7 @@
         bool isWorkshops = path == "/admin" || path.StartsWith("/admin/workshops");
         bool isMenu      = path.StartsWith("/admin/menu");
         bool isReserved  = path.StartsWith("/admin/reserved");
+        bool isPromo     = path.StartsWith("/admin/promos");
     }
 
     <div class="admin-section-tabs">
@@ -38,6 +39,9 @@
         </a>
         <a href="/admin/menu" class="admin-section-tab @(isMenu ? "active" : "")">
             <span>Meni</span>
+        </a>
+        <a href="/admin/promos" class="admin-section-tab @(isPromo ? "active" : "")">
+            <span>Promo</span>
         </a>
     </div>
 

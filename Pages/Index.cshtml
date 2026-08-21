@@ -36,6 +36,7 @@
     </div>
 </section>
 
+
 <!-- ============= PHOTO STRIP ============= -->
 <section class="photo-strip">
     <div class="photo-strip-inner">
@@ -53,6 +54,47 @@
         </div>
     </div>
 </section>
+
+<!-- ============= PROMO CAROUSEL ============= -->
+@if (Model.Promos.Any())
+{
+    <section class="promo-carousel"
+             x-data="{ active: 0, count: @Model.Promos.Count }"
+             x-init="count > 1 && setInterval(() => { active = (active + 1) % count }, 4000)">
+        @for (int i = 0; i < Model.Promos.Count; i++)
+        {
+            var promo = Model.Promos[i];
+            var focalPosition = $"{promo.FocalX.ToString(System.Globalization.CultureInfo.InvariantCulture)}% {promo.FocalY.ToString(System.Globalization.CultureInfo.InvariantCulture)}%";
+            <div class="promo-slide" :class="active === @i ? 'promo-slide--active' : ''">
+                @if (promo.IsVideo)
+                {
+                    <video autoplay muted loop playsinline style="object-position: @focalPosition;">
+                        <source src="@promo.ImageUrl" />
+                    </video>
+                }
+                else
+                {
+                    <img src="@promo.ImageUrl" alt="@promo.Heading" style="object-position: @focalPosition;" />
+                }
+                @if (!string.IsNullOrEmpty(promo.Heading) || !string.IsNullOrEmpty(promo.Subheading))
+                {
+                    <div class="promo-slide-overlay"></div>
+                    <div class="promo-slide-text">
+                        @if (!string.IsNullOrEmpty(promo.Heading))
+                        {
+                            <h2 class="promo-slide-heading">@promo.Heading</h2>
+                        }
+                        @if (!string.IsNullOrEmpty(promo.Subheading))
+                        {
+                            <p class="promo-slide-subheading">@promo.Subheading</p>
+                        }
+                    </div>
+                }
+            </div>
+        }
+    </section>
+}
+
 
 <!-- ============= UPCOMING WORKSHOPS ============= -->
 <section class="workshops-section">

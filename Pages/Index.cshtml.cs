@@ -13,6 +13,7 @@ public class IndexModel : PageModel
 
     public List<Workshop> UpcomingWorkshops { get; set; } = new();
     public List<Workshop> ReservableWorkshops { get; set; } = new();
+    public List<Promo> Promos { get; set; } = new();
     public Dictionary<int, WorkshopOccurrence> NextOccurrenceByWorkshopId { get; set; } = new();
     public Dictionary<int, int> UpcomingOccurrenceCountByWorkshopId { get; set; } = new();
 
@@ -34,6 +35,8 @@ public class IndexModel : PageModel
     {
         var en = new CultureInfo("en-US");
         var today = DateTime.Today;
+
+        Promos = await _db.Promos.OrderBy(p => p.DisplayOrder).ToListAsync();
 
         CurrentMonthStart = new DateTime(today.Year, today.Month, 1);
         CurrentMonthDays  = DateTime.DaysInMonth(today.Year, today.Month);

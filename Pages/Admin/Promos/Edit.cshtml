@@ -1,0 +1,231 @@
+@page "/admin/promos/{action}/{id:int?}"
+@model WorkshopZagreb.Pages.Admin.Promos.PromoEditModel
+@{
+    Layout = "_AdminLayout";
+    bool isNew = Model.IsNew;
+    ViewData["Title"] = isNew ? "Novi promo" : "Uredi promo";
+    bool hasMedia = !string.IsNullOrEmpty(Model.Input.ExistingImageUrl);
+    bool existingIsVideo = Model.Input.ExistingIsVideo;
+    string focalPosition = $"{Model.Input.FocalX.ToString(System.Globalization.CultureInfo.InvariantCulture)}% {Model.Input.FocalY.ToString(System.Globalization.CultureInfo.InvariantCulture)}%";
+}
+
+<div style="margin-bottom:24px;">
+    <a href="/admin/promos" style="font-size:0.85rem; color:var(--terracotta);">← Natrag na popis</a>
+</div>
+
+<h1 class="admin-page-title">@(isNew ? "Novi promo" : "Uredi promo")</h1>
+
+<form method="post" enctype="multipart/form-data" class="form-card">
+    <input type="hidden" name="Input.Id" value="@Model.Input.Id" />
+    <!-- Round-trip so a validation-error re-render doesn't lose track of an
+         already-uploaded photo/video and wrongly mark ImageFile as required again. -->
+    <input type="hidden" name="Input.ExistingImageUrl" value="@Model.Input.ExistingImageUrl" />
+    <input type="hidden" id="promo-focal-x" name="Input.FocalX" value="@Model.Input.FocalX.ToString(System.Globalization.CultureInfo.InvariantCulture)" />
+    <input type="hidden" id="promo-focal-y" name="Input.FocalY" value="@Model.Input.FocalY.ToString(System.Globalization.CultureInfo.InvariantCulture)" />
+
+    <div class="form-group">
+        <label class="form-label">Fotografija ili video <span class="required">*</span></label>
+
+        <div style="display:flex; align-items:center; gap:12px;">
+            <button type="button" class="btn btn-outline btn-sm" onclick="document.getElementById('promo-image-file').click()">
+                @(hasMedia ? "Zamijeni fotografiju/video" : "Odaberi fotografiju/video")
+            </button>
+            <span id="promo-file-name" class="form-hint" style="margin:0;">
+                @(hasMedia ? (existingIsVideo ? "Trenutni video se koristi." : "Trenutna fotografija se koristi.") : "Nije odabrana fotografija ni video.")
+            </span>
+        </div>
+        <input type="file" id="promo-image-file" name="ImageFile"
+               accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime"
+               style="display:none" onchange="promoPreviewMedia(this)" @(isNew ? "required" : "") />
+
+        <p class="form-hint">Prikazuje se preko cijele širine, kao banner na naslovnici. Fotografija (npr. 1600×600) ili kratak video (MP4/WEBM/MOV — reproducira se automatski, bez zvuka, u petlji).</p>
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">Pregled</label>
+        <div class="promo-preview-box" id="promo-preview-box">
+            @if (hasMedia && !existingIsVideo)
+            {
+                <img id="promo-preview-img" alt="" src="@Model.Input.ExistingImageUrl" style="display:block; object-position: @focalPosition;" />
+            }
+            else
+            {
+                <img id="promo-preview-img" alt="" style="display:none; object-position: @focalPosition;" />
+            }
+            @if (hasMedia && existingIsVideo)
+            {
+                <video id="promo-preview-video" muted loop playsinline autoplay style="display:block; object-position: @focalPosition;">
+                    <source id="promo-preview-video-source" src="@Model.Input.ExistingImageUrl" />
+                </video>
+            }
+            else
+            {
+                <video id="promo-preview-video" muted loop playsinline autoplay style="display:none; object-position: @focalPosition;">
+                    <source id="promo-preview-video-source" src="" />
+                </video>
+            }
+            <div id="promo-preview-empty" class="promo-preview-empty" style="display:@(hasMedia ? "none" : "flex")">
+                Odaberi fotografiju ili video za pregled
+            </div>
+            @{ bool hasText = !string.IsNullOrEmpty(Model.Input.Heading) || !string.IsNullOrEmpty(Model.Input.Subheading); }
+            <div id="promo-preview-overlay" class="promo-slide-overlay" style="display:@(hasText ? "block" : "none")"></div>
+            <div id="promo-preview-text" class="promo-slide-text" style="display:@(hasText ? "block" : "none")">
+                <h2 id="promo-preview-heading" class="promo-slide-heading"
+                    style="display:@(string.IsNullOrEmpty(Model.Input.Heading) ? "none" : "block")">@Model.Input.Heading</h2>
+                <p id="promo-preview-subheading" class="promo-slide-subheading"
+                   style="display:@(string.IsNullOrEmpty(Model.Input.Subheading) ? "none" : "block")">@Model.Input.Subheading</p>
+            </div>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:baseline;">
+            <p class="form-hint">Povuci da namjestiš koji dio se vidi. Desktop prikaz — na mobitelu je izrezano nešto uže.</p>
+            <button type="button" id="promo-recenter-btn" onclick="promoRecenter()"
+                    style="display:@(hasMedia ? "inline" : "none"); background:none; border:none; padding:0; cursor:pointer; font-size:0.75rem; color:var(--terracotta); white-space:nowrap;">↺ Centriraj</button>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">Naslov <span style="opacity:0.5;font-weight:400;">(opcionalno)</span></label>
+        <input type="text" name="Input.Heading" value="@Model.Input.Heading"
+               class="form-control" maxlength="80" placeholder="npr. Ljetna akcija -20%"
+               oninput="promoPreviewHeading(this)" />
+        <p class="form-hint">Prikazuje se centrirano preko fotografije/videa. Prazno = bez naslova.</p>
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">Podnaslov <span style="opacity:0.5;font-weight:400;">(opcionalno)</span></label>
+        <input type="text" name="Input.Subheading" value="@Model.Input.Subheading"
+               class="form-control" maxlength="120" placeholder="npr. Vrijedi do 31.8."
+               oninput="promoPreviewSubheading(this)" />
+        <p class="form-hint">Manji tekst ispod naslova. Može se koristiti i bez naslova.</p>
+    </div>
+
+    <button type="submit" class="btn btn-primary">@(isNew ? "Dodaj promo" : "Spremi promjene")</button>
+</form>
+
+<script>
+function promoPreviewMedia(input) {
+    var img = document.getElementById('promo-preview-img');
+    var video = document.getElementById('promo-preview-video');
+    var videoSource = document.getElementById('promo-preview-video-source');
+    var empty = document.getElementById('promo-preview-empty');
+    var fileName = document.getElementById('promo-file-name');
+    var recenterBtn = document.getElementById('promo-recenter-btn');
+    if (!input.files || !input.files[0]) return;
+
+    var file = input.files[0];
+    var url = URL.createObjectURL(file);
+    var isVideo = file.type.indexOf('video/') === 0;
+
+    if (isVideo) {
+        videoSource.src = url;
+        video.load();
+        video.style.display = 'block';
+        img.style.display = 'none';
+    } else {
+        img.src = url;
+        img.style.display = 'block';
+        video.style.display = 'none';
+    }
+
+    empty.style.display = 'none';
+    fileName.textContent = file.name;
+    recenterBtn.style.display = 'inline';
+    // A new photo/video makes the old crop position meaningless — reset to center.
+    promoSetFocal(50, 50);
+}
+
+function promoPreviewHeading(input) {
+    var heading = document.getElementById('promo-preview-heading');
+    var text = input.value.trim();
+    heading.textContent = text;
+    heading.style.display = text ? 'block' : 'none';
+    promoUpdateTextVisibility();
+}
+
+function promoPreviewSubheading(input) {
+    var subheading = document.getElementById('promo-preview-subheading');
+    var text = input.value.trim();
+    subheading.textContent = text;
+    subheading.style.display = text ? 'block' : 'none';
+    promoUpdateTextVisibility();
+}
+
+function promoUpdateTextVisibility() {
+    var hasHeading = document.getElementById('promo-preview-heading').style.display !== 'none';
+    var hasSubheading = document.getElementById('promo-preview-subheading').style.display !== 'none';
+    var show = hasHeading || hasSubheading;
+    document.getElementById('promo-preview-overlay').style.display = show ? 'block' : 'none';
+    document.getElementById('promo-preview-text').style.display = show ? 'block' : 'none';
+}
+
+function promoSetFocal(x, y) {
+    x = Math.max(0, Math.min(100, x));
+    y = Math.max(0, Math.min(100, y));
+    var position = x + '% ' + y + '%';
+    document.getElementById('promo-preview-img').style.objectPosition = position;
+    document.getElementById('promo-preview-video').style.objectPosition = position;
+    document.getElementById('promo-focal-x').value = x;
+    document.getElementById('promo-focal-y').value = y;
+}
+
+function promoRecenter() {
+    promoSetFocal(50, 50);
+}
+
+(function () {
+    var box = document.getElementById('promo-preview-box');
+    var img = document.getElementById('promo-preview-img');
+    var video = document.getElementById('promo-preview-video');
+    var dragging = false;
+    var startPointerX, startPointerY, startFocalX, startFocalY;
+
+    img.draggable = false; // suppress the browser's native image drag-ghost, which
+                            // otherwise hijacks the gesture after the first pointermove
+    box.style.cursor = 'grab';
+
+    function hasMedia() {
+        return img.style.display !== 'none' || video.style.display !== 'none';
+    }
+
+    function currentFocal() {
+        var x = parseFloat(document.getElementById('promo-focal-x').value) || 50;
+        var y = parseFloat(document.getElementById('promo-focal-y').value) || 50;
+        return { x: x, y: y };
+    }
+
+    // Drag is bound to the preview box, not to img/video individually, so it works
+    // the same way regardless of which media type is currently showing. Tracked on
+    // the document (not the box) — a fast drag can easily carry the pointer outside
+    // the (fairly small) preview box, and only the document is guaranteed to keep
+    // receiving move/up events for the rest of the gesture.
+    box.addEventListener('pointerdown', function (e) {
+        if (!hasMedia()) return;
+        e.preventDefault();
+        dragging = true;
+        box.style.cursor = 'grabbing';
+        startPointerX = e.clientX;
+        startPointerY = e.clientY;
+        var focal = currentFocal();
+        startFocalX = focal.x;
+        startFocalY = focal.y;
+    });
+
+    document.addEventListener('pointermove', function (e) {
+        if (!dragging) return;
+        var rect = box.getBoundingClientRect();
+        // Dragging right/down should reveal more of the left/top edge,
+        // so the position percentage moves opposite to the pointer's movement.
+        var deltaXPct = ((e.clientX - startPointerX) / rect.width) * 100;
+        var deltaYPct = ((e.clientY - startPointerY) / rect.height) * 100;
+        promoSetFocal(startFocalX - deltaXPct, startFocalY - deltaYPct);
+    });
+
+    function endDrag() {
+        if (!dragging) return;
+        dragging = false;
+        box.style.cursor = 'grab';
+    }
+    document.addEventListener('pointerup', endDrag);
+    document.addEventListener('pointercancel', endDrag);
+})();
+</script>

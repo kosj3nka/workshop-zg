@@ -3,8 +3,10 @@ namespace WorkshopZagreb.Services;
 public interface IFileService
 {
     Task<string> SaveImageAsync(IFormFile file, string subfolder);
+    Task<string> SaveMediaAsync(IFormFile file, string subfolder);
     void DeleteImage(string relativePath);
     bool IsSupportedImage(IFormFile file);
+    bool IsSupportedVideo(IFormFile file);
 }
 
 // On Azure you'd swap the body of SaveImageAsync to upload to Azure Blob Storage instead.
@@ -34,8 +36,19 @@ public class FileService : IFileService
         ".jpg", ".jpeg", ".png", ".webp", ".gif"
     };
 
+    // Video support is scoped to promos (SaveMediaAsync) — other upload paths
+    // (workshop banners/logos, menu) keep going through SaveImageAsync/IsSupportedImage
+    // untouched, so they stay image-only.
+    private static readonly HashSet<string> AllowedVideoExtensions = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ".mp4", ".webm", ".mov"
+    };
+
     public bool IsSupportedImage(IFormFile file) =>
         AllowedExtensions.Contains(Path.GetExtension(file.FileName).ToLowerInvariant());
+
+    public bool IsSupportedVideo(IFormFile file) =>
+        AllowedVideoExtensions.Contains(Path.GetExtension(file.FileName).ToLowerInvariant());
 
     public async Task<string> SaveImageAsync(IFormFile file, string subfolder)
     {
@@ -43,6 +56,20 @@ public class FileService : IFileService
         if (!AllowedExtensions.Contains(extension))
             throw new InvalidOperationException($"Unsupported image file type: {extension}");
 
+        return await SaveFileAsync(file, subfolder, extension);
+    }
+
+    public async Task<string> SaveMediaAsync(IFormFile file, string subfolder)
+    {
+        var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+        if (!AllowedExtensions.Contains(extension) && !AllowedVideoExtensions.Contains(extension))
+            throw new InvalidOperationException($"Unsupported media file type: {extension}");
+
+        return await SaveFileAsync(file, subfolder, extension);
+    }
+
+    private async Task<string> SaveFileAsync(IFormFile file, string subfolder, string extension)
+    {
         var uploadsFolder = Path.Combine(_imagesRoot, subfolder);
         Directory.CreateDirectory(uploadsFolder);
 
@@ -54,7 +81,7 @@ public class FileService : IFileService
         await file.CopyToAsync(stream);
 
         // Return the relative URL — this is what gets stored in the database
-        // and used directly in <img src="...">
+        // and used directly in <img src="..."> / <video src="...">
         return $"/images/{subfolder}/{fileName}";
     }
 

@@ -46,9 +46,22 @@ public class LoginModel : PageModel
         var adminHash = _config["Admin:PasswordHash"];
 
         // BCrypt.Verify compares the plain password against the stored hash
-        // The hash in appsettings.json is generated once with BCrypt.HashPassword()
-        bool valid = username == adminUser
-                     && BCrypt.Net.BCrypt.Verify(password, adminHash);
+        // The hash is set via user secrets locally / app config in Azure — see
+        // SetPassword.cshtml. If it's missing or malformed, Verify throws instead
+        // of returning false, so guard it explicitly rather than let a config
+        // problem surface as an unhandled exception page.
+        bool valid = false;
+        if (username == adminUser && !string.IsNullOrEmpty(adminHash))
+        {
+            try
+            {
+                valid = BCrypt.Net.BCrypt.Verify(password, adminHash);
+            }
+            catch (BCrypt.Net.SaltParseException)
+            {
+                valid = false;
+            }
+        }
 
         if (valid)
         {
